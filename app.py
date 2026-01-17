@@ -75,7 +75,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 3. पासवर्ड सुरक्षा ---
-MY_PASSWORD = "admin" 
+MY_PASSWORD = "Rituraj87" 
 
 def check_password():
     if "password_correct" not in st.session_state:

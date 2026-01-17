@@ -2,61 +2,50 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-# --- 1. पेज कॉन्फ़िगरेशन (Page Config) ---
+# --- 1. पेज कॉन्फ़िगरेशन ---
 st.set_page_config(
-    page_title="Darvas Elite Scanner", 
+    page_title="Darvas Elite 300", 
     layout="wide", 
     page_icon="🦅",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed" # मोबाइल पर साइडबार बंद रहेगा ताकि स्क्रीन बड़ी दिखे
 )
 
-# --- 2. कस्टम CSS (डिज़ाइन, लोगो और रंगों के लिए) ---
+# --- 2. स्मार्ट CSS (Auto Dark/Light Mode Support) ---
 st.markdown("""
 <style>
-    /* मेन बैकग्राउंड हल्का सा डार्क ग्रे (Professional Look) */
-    .stApp {
-        background-color: #f0f2f6;
-    }
+    /* नोट: हमने बैकग्राउंड कलर हटा दिया है ताकि 
+       यह आपके फोन की सेटिंग (Dark/Light) के हिसाब से अपने आप सेट हो जाए 
+    */
     
-    /* साइडबार का स्टाइल */
-    section[data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e0e0e0;
-    }
-
-    /* मेट्रिक्स कार्ड्स (ऊपर के 3 डिब्बे) */
+    /* मेट्रिक्स कार्ड्स (Stats) */
     div[data-testid="metric-container"] {
-        background-color: #ffffff;
-        border: 1px solid #dcdcdc;
-        padding: 15px;
+        border: 1px solid #444; /* डार्क बॉर्डर ताकि ब्लैक थीम में भी दिखे */
+        padding: 10px;
         border-radius: 10px;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
         text-align: center;
     }
 
-    /* टिकर (चलती हुई पट्टी) का स्टाइल */
+    /* टिकर (News Ticker) - यह हमेशा हाईलाइटेड रहेगा */
     .ticker-wrap-green {
-        background: linear-gradient(90deg, #d4edda 0%, #c3e6cb 100%);
-        color: #155724;
+        background: linear-gradient(90deg, #155724 0%, #1e8e3e 100%); /* डार्क ग्रीन */
+        color: white; /* वाइट टेक्स्ट */
         padding: 12px;
         border-radius: 8px;
-        border-left: 5px solid #28a745;
+        border-left: 5px solid #2ecc71;
         font-weight: bold;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 10px;
     }
     .ticker-wrap-red {
-        background: linear-gradient(90deg, #f8d7da 0%, #f5c6cb 100%);
-        color: #721c24;
+        background: linear-gradient(90deg, #721c24 0%, #c0392b 100%); /* डार्क रेड */
+        color: white;
         padding: 12px;
         border-radius: 8px;
-        border-left: 5px solid #dc3545;
+        border-left: 5px solid #e74c3c;
         font-weight: bold;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 20px;
     }
     
-    /* बटन का स्टाइल */
+    /* बटन स्टाइल (Blue Gradient) */
     div.stButton > button {
         width: 100%;
         background: linear-gradient(45deg, #2980b9, #6dd5fa);
@@ -65,11 +54,6 @@ st.markdown("""
         border: none;
         padding: 10px;
         border-radius: 5px;
-        transition: 0.3s;
-    }
-    div.stButton > button:hover {
-        background: linear-gradient(45deg, #1f618d, #2980b9);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -82,45 +66,40 @@ def check_password():
         st.session_state.password_correct = False
 
     if not st.session_state.password_correct:
-        with st.sidebar:
-            st.header("🔒 Login Required")
-            pwd = st.text_input("Enter Password:", type="password")
-            if st.button("Login"):
-                if pwd == MY_PASSWORD:
-                    st.session_state.password_correct = True
-                    st.rerun()
-                else:
-                    st.error("Incorrect Password")
+        st.header("🔒 Secure Login")
+        pwd = st.text_input("Enter Password:", type="password")
+        if st.button("Login"):
+            if pwd == MY_PASSWORD:
+                st.session_state.password_correct = True
+                st.rerun()
+            else:
+                st.error("Incorrect Password")
         return False
     return True
 
 if not check_password():
     st.stop()
 
-# --- 4. साइडबार (LOGO और कंट्रोल) ---
+# --- 4. साइडबार (लोगो और कंट्रोल) ---
 with st.sidebar:
-    # --- LOGO AREA ---
-    # आप यहाँ अपनी इमेज का लिंक डाल सकते हैं या GitHub पर इमेज अपलोड करके उसका लिंक दें
-    # अभी मैं एक प्रोफेशनल इमोजी लोगो बना रहा हूँ
     st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <h1 style='font-size: 60px; margin:0;'>🦅</h1>
-            <h2 style='color: #2c3e50; margin:0;'>DARVAS</h2>
-            <h3 style='color: #e74c3c; margin:0;'>ELITE PRO</h3>
+        <div style='text-align: center;'>
+            <h1>🦅</h1>
+            <h3>DARVAS ELITE</h3>
+            <p>Scanning 300 Stocks</p>
             <hr>
         </div>
     """, unsafe_allow_html=True)
     
-    st.write("Welcome to the premium Nifty 500 scanner.")
+    # स्कैन बटन
+    start_scan = st.button("🚀 START SCAN (300)", type="primary")
     
-    # स्कैन बटन साइडबार में
-    start_scan = st.button("🚀 SCAN MARKET NOW", type="primary")
-    
-    st.info("💡 **Tip:** Rotate phone to landscape mode for best view.")
-    st.caption("v3.0 | 2026 Edition")
+    st.info("System Theme: Auto (Black/White)")
+    st.caption("v4.0 | 300 Stocks Edition")
 
-# --- स्टॉक लिस्ट (Top 150 Liquid Stocks for Fast Scan) ---
+# --- 5. NIFTY 500 LIST (Expanded to 300 Stocks) ---
 STOCKS = [
+    # --- Top Giants (50) ---
     "RELIANCE.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "ITC.NS", "TCS.NS",
     "L&T.NS", "AXISBANK.NS", "KOTAKBANK.NS", "SBIN.NS", "BHARTIARTL.NS",
     "BAJFINANCE.NS", "ASIANPAINT.NS", "MARUTI.NS", "HCLTECH.NS", "TITAN.NS",
@@ -130,6 +109,8 @@ STOCKS = [
     "WIPRO.NS", "DIVISLAB.NS", "CIPLA.NS", "SBILIFE.NS", "DRREDDY.NS",
     "BAJAJFINSV.NS", "BPCL.NS", "BRITANNIA.NS", "EICHERMOT.NS", "HEROMOTOCO.NS",
     "TATACONSUM.NS", "INDUSINDBK.NS", "APOLLOHOSP.NS", "UPL.NS", "LICI.NS",
+    
+    # --- Midcap & F&O High Volume (100) ---
     "ADANIPORTS.NS", "DMART.NS", "ZOMATO.NS", "HAL.NS", "BEL.NS", "JIOFIN.NS",
     "VBL.NS", "TRENT.NS", "SIEMENS.NS", "IOC.NS", "DLF.NS", "BANKBARODA.NS",
     "CHOLAFIN.NS", "GAIL.NS", "RECLTD.NS", "SHRIRAMFIN.NS", "PFC.NS",
@@ -142,10 +123,47 @@ STOCKS = [
     "SUPREMEIND.NS", "TIINDIA.NS", "LALPATHLAB.NS", "AUBANK.NS", "CONCOR.NS",
     "ABCAPITAL.NS", "TATACHEM.NS", "FEDERALBNK.NS", "OBEROIRLTY.NS", "LTTS.NS",
     "ATUL.NS", "COROMANDEL.NS", "GMRINFRA.NS", "WHIRLPOOL.NS", "ALKEM.NS",
-    "COFORGE.NS", "BHEL.NS", "SAIL.NS", "NATIONALUM.NS", "BANDHANBNK.NS"
+    "COFORGE.NS", "TDPOWERSYS.NS", "BHEL.NS", "SAIL.NS", "NATIONALUM.NS",
+    "BANDHANBNK.NS", "GUJGASLTD.NS", "IPCALAB.NS", "LAURUSLABS.NS", "TATAELXSI.NS",
+    "DEEPAKNTR.NS", "CROMPTON.NS", "ACC.NS", "DALBHARAT.NS", "JSL.NS",
+    "APLAPOLLO.NS", "MFSL.NS", "PETRONET.NS", "ZEEL.NS", "RAMCOCEM.NS",
+    "NAVINFLUOR.NS", "SYNGENE.NS", "TRIDENT.NS", "SOLARINDS.NS", "RVNL.NS",
+    
+    # --- Emerging & Volatile (50) ---
+    "IRFC.NS", "MAZDOCK.NS", "COCHINSHIP.NS", "FACT.NS", "SUZLON.NS",
+    "IDEA.NS", "YESBANK.NS", "IDBI.NS", "UNIONBANK.NS", "IOB.NS",
+    "UCOBANK.NS", "CENTRALBK.NS", "MAHABANK.NS", "BANKINDIA.NS", "BSE.NS",
+    "CDSL.NS", "ANGELONE.NS", "MCX.NS", "MOTILALOFS.NS", "IEX.NS",
+    "LUPIN.NS", "BIOCON.NS", "AUROPHARMA.NS", "GLENMARK.NS", "ZYDUSLIFE.NS",
+    "GRANULES.NS", "ABFRL.NS", "BATAINDIA.NS", "RELAXO.NS", "PAGEIND.NS",
+    "JUBLFOOD.NS", "DEVYANI.NS", "SAPPHIRE.NS", "KALYANKJIL.NS", "RAJESHEXPO.NS",
+    "MANAPPURAM.NS", "M&MFIN.NS", "LICHSGFIN.NS", "POONAWALLA.NS", "SUNDARAMFIN.NS",
+    "KPITTECH.NS", "CYIENT.NS", "BSOFT.NS", "SONACOMS.NS", "ZENSARTECH.NS",
+    "OFSS.NS", "HONAUT.NS", "KEI.NS", "DIXON.NS", "AMBER.NS",
+    
+    # --- Extra Momentum Stocks (100) ---
+    "KAYNES.NS", "DATAPATTNS.NS", "MTARTECH.NS", "PARAS.NS", "ASTRAMICRO.NS",
+    "CENTUM.NS", "HBLPOWER.NS", "TITAGARH.NS", "TEXRAIL.NS", "JWL.NS",
+    "RKFORGE.NS", "ELECTCAST.NS", "GABRIEL.NS", "PRICOLLTD.NS", "SUBROS.NS",
+    "LUMAXIND.NS", "MINDA CORP.NS", "UNOMINDA.NS", "ENDURANCE.NS", "CRAFTSMAN.NS",
+    "JAMNAAUTO.NS", "GNA.NS", "ROLEXRINGS.NS", "SFL.NS", "TIMKEN.NS",
+    "SCHAEFFLER.NS", "SKFINDIA.NS", "AIAENG.NS", "THERMAX.NS", "TRIVENI.NS",
+    "PRAJIND.NS", "BALRAMCHIN.NS", "EIDPARRY.NS", "RENUKA.NS", "TRIVENITURB.NS",
+    "KIRLOSENG.NS", "ELGIEQUIP.NS", "INGERRAND.NS", "KSB.NS", "POWERINDIA.NS",
+    "HITACHI.NS", "VOLTAS.NS", "BLUESTARCO.NS", "KAJARIACER.NS", "CERA.NS",
+    "SOMANYCERA.NS", "GREENPANEL.NS", "CENTURYPLY.NS", "STYLAMIND.NS", "PRINCEPIPE.NS",
+    "FINPIPE.NS", "JINDALSAW.NS", "WELCORP.NS", "MAHARSEAM.NS", "RATNAMANI.NS",
+    "APLLTD.NS", "ALEMBICLTD.NS", "ERIS.NS", "AJANTPHARM.NS", "JBITHEM.NS",
+    "NATCOPHARM.NS", "PFIZER.NS", "SANOFI.NS", "ABBOTINDIA.NS", "GLAXO.NS",
+    "ASTERDM.NS", "NARAYANA.NS", "KIMS.NS", "RAINBOW.NS", "METROPOLIS.NS",
+    "LALPATHLAB.NS", "THYROCARE.NS", "VIJAYA.NS", "FORTIS.NS", "MAXHEALTH.NS",
+    "NH.NS", "HCG.NS", "POLYMED.NS", "LINDEINDIA.NS", "FLUOROCHEM.NS",
+    "AETHER.NS", "CLEAN.NS", "FINEORG.NS", "VINATIORGA.NS", "ROSSARI.NS",
+    "NOCIL.NS", "SUMICHEM.NS", "UPL.NS", "RALLIS.NS", "CHAMBLFERT.NS",
+    "GNFC.NS", "GSFC.NS", "DEEPAKFERT.NS", "PARADEEP.NS", "IPL.NS"
 ]
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=900) # 15 मिनट कैश (ताकि 300 स्टॉक बार-बार लोड न हों)
 def get_stock_data(symbol):
     try:
         df = yf.download(symbol, period="3mo", interval="1d", progress=False)
@@ -167,11 +185,10 @@ def get_stock_data(symbol):
     except:
         return None
 
-# --- 5. मुख्य ऐप लॉजिक ---
-st.title("📊 Market Dashboard")
+# --- मुख्य ऐप लॉजिक ---
+st.title("📊 Market Dashboard (300)")
 
 if start_scan:
-    # प्रोग्रेस बार ऊपर दिखाएं
     progress_bar = st.progress(0)
     status_text = st.empty()
     
@@ -179,8 +196,9 @@ if start_scan:
     entry_names = []
     exit_names = []
     
+    # 300 स्टॉक्स स्कैन लूप
     for i, stock in enumerate(STOCKS):
-        status_text.caption(f"Scanning {stock}...")
+        status_text.caption(f"Analyzing {i+1}/{len(STOCKS)}: {stock}...")
         data = get_stock_data(stock)
         progress_bar.progress((i + 1) / len(STOCKS))
         
@@ -199,11 +217,12 @@ if start_scan:
                 pct_change = ((cmp - entry) / entry) * 100
                 
                 status = ""
+                # यहाँ हमने लॉजिक वापस BUY / HOLD कर दिया है
                 if cmp < sl:
-                    status = "EXIT SIGNAL"
+                    status = "EXIT NOW"
                     exit_names.append(data['symbol'])
                 else:
-                    status = "BUY SIGNAL"
+                    status = "BUY / HOLD"
                     entry_names.append(data['symbol'])
 
                 tv_link = f"https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']}"
@@ -223,37 +242,37 @@ if start_scan:
     status_text.empty()
 
     if valid_data:
-        # --- 6. डैशबोर्ड मेट्रिक्स (Dashboard Metrics) ---
-        # यह नया फीचर है: 3 बड़े बॉक्स
+        # --- डैशबोर्ड मेट्रिक्स ---
         total_found = len(valid_data)
         total_buy = len(entry_names)
         total_exit = len(exit_names)
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric(label="Total Opportunities", value=total_found)
+            st.metric(label="Total Stocks Found", value=total_found)
         with col2:
-            st.metric(label="Bullish (Buy)", value=total_buy, delta="Strong")
+            st.metric(label="BUY / HOLD", value=total_buy, delta="Bullish")
         with col3:
-            st.metric(label="Bearish (Exit)", value=total_exit, delta="-Weak", delta_color="inverse")
+            st.metric(label="EXIT ALERT", value=total_exit, delta="-Bearish", delta_color="inverse")
         
-        st.write("---") # डिवाइडर लाइन
+        st.write("---")
 
-        # --- 7. टिकर (News Ticker) ---
+        # --- टिकर (High Contrast for both Black/White Modes) ---
         if entry_names:
             entry_str = " &nbsp; • &nbsp; ".join(entry_names)
-            st.markdown(f"<div class='ticker-wrap-green'><marquee scrollamount='10'>🚀 <b>STRONG BUY:</b> {entry_str}</marquee></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ticker-wrap-green'><marquee scrollamount='10'>🚀 <b>BUY / HOLD:</b> {entry_str}</marquee></div>", unsafe_allow_html=True)
             
         if exit_names:
             exit_str = " &nbsp; • &nbsp; ".join(exit_names)
-            st.markdown(f"<div class='ticker-wrap-red'><marquee scrollamount='10'>🛑 <b>EXIT ALERT:</b> {exit_str}</marquee></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ticker-wrap-red'><marquee scrollamount='10'>🛑 <b>EXIT NOW:</b> {exit_str}</marquee></div>", unsafe_allow_html=True)
 
-        # --- 8. फाइनल टेबल ---
+        # --- फाइनल टेबल ---
         df_result = pd.DataFrame(valid_data)
         
         def color_status(val):
-            if 'EXIT' in val: return 'background-color: #ffcccc; color: #b30000; font-weight: bold;'
-            elif 'BUY' in val: return 'background-color: #d4edda; color: #155724; font-weight: bold;'
+            # यह रंग ऑटोमैटिक थीम के साथ भी अच्छे दिखेंगे
+            if 'EXIT' in val: return 'background-color: #ff4b4b; color: white; font-weight: bold;'
+            elif 'BUY' in val: return 'background-color: #2ecc71; color: black; font-weight: bold;'
             return ''
 
         st.dataframe(
@@ -262,17 +281,15 @@ if start_scan:
                 "Stop Loss": "{:.2f}", "% Gain": "{:.2f}%"
             }),
             column_config={
-                "Stock": st.column_config.TextColumn("Symbol", help="Stock Name"),
+                "Stock": st.column_config.TextColumn("Symbol"),
                 "Chart": st.column_config.LinkColumn("View", display_text="Open Chart"),
             },
             use_container_width=True,
-            height=600,
+            height=800, # टेबल की हाइट बढ़ा दी है
             hide_index=True
         )
     else:
-        st.warning("No high-probability setups found in current market.")
+        st.warning("No active setups found in 300 stocks list.")
 
 else:
-    # जब स्कैन नहीं हो रहा हो, तब खाली स्क्रीन सुंदर दिखे
-    st.info("👈 Please click 'SCAN MARKET NOW' from the sidebar to start.")
-    st.image("https://images.unsplash.com/photo-1611974765270-ca1258634369?q=80&w=1000&auto=format&fit=crop", caption="Market Analytics", use_column_width=True)
+    st.info("👈 Tap 'START SCAN' in the sidebar to analyze 300 stocks.")

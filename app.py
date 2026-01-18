@@ -245,4 +245,4 @@ if start_scan:
         st.warning("No active setups found.")
 else:
     st.info("👈 Tap 'START SCAN' to begin.")
-
+        

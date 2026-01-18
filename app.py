@@ -101,19 +101,11 @@ def check_login():
 if not check_login():
     st.stop()
 
-# --- 4. साइडबार (फोटो अपलोड और लोगो) ---
+# --- 4. साइडबार (फोटो और कंट्रोल) ---
 with st.sidebar:
-    st.write("## ⚙️ Settings")
-    
-    # फोटो अपलोड करने का ऑप्शन
-    uploaded_file = st.file_uploader("📸 अपना लोगो/फोटो लगाएं", type=['jpg', 'png', 'jpeg'])
-    
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="My Dashboard Logo", use_container_width=True)
-    else:
-        # अगर फोटो नहीं लगाई है तो यह डिफ़ॉल्ट इमोजी दिखेगा
-        st.markdown("<div style='text-align: center; font-size: 80px;'>🦅</div>", unsafe_allow_html=True)
+    # --- नई ट्रेडिंग फोटो ---
+    # यह एक प्रोफेशनल ट्रेडिंग डेस्क की फोटो है
+    st.image("https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=1000&auto=format&fit=crop", use_column_width=True)
     
     st.markdown("---")
     st.title("DARVAS PRO")

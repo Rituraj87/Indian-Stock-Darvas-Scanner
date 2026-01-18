@@ -1,11 +1,10 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-from PIL import Image
 
-# --- 1. पेज सेटिंग ---
+# --- 1. पेज सेटिंग (Page Config) ---
 st.set_page_config(
-    page_title="Darvas Pro 300", 
+    page_title="Darvas Elite Pro", 
     layout="wide", 
     page_icon="📈",
     initial_sidebar_state="expanded"

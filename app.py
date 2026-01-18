@@ -46,6 +46,19 @@ st.markdown("""
         margin-top: 10px;
     }
     
+    /* एडवाइस नोटिफिकेशन बॉक्स */
+    .advice-box {
+        background-color: #f0f8ff; /* Light Blue */
+        border-left: 6px solid #2196F3;
+        padding: 15px;
+        border-radius: 5px;
+        color: #0c5460;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-size: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
     /* बटन स्टाइल */
     div.stButton > button {
         width: 100%;
@@ -74,7 +87,7 @@ if not check_password(): st.stop()
 
 # --- 4. साइडबार ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3820/3820195.png", width=100)
+    st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Bullish Momentum", use_column_width=True)
     st.title("NSE MARKET PRO")
     st.markdown("---")
     
@@ -135,32 +148,45 @@ def get_stock_data(symbol):
 # --- 6. मुख्य ऐप ---
 st.title("🦅 Darvas Pro Market Scanner")
 
-# --- सेक्शन 1: सुपर सर्च बार (Universal Search) ---
-st.markdown("### 🔍 Search Any Stock (2000+ Companies)")
-search_symbol = st.text_input("Enter Symbol (e.g. SUZLON, YESBANK, MRF):", "").upper()
+# --- सेक्शन 1: सुपर यूनिवर्सल सर्च बार (SEARCH ANY STOCK) ---
+st.markdown("### 🔍 Universal Search (Check Any Stock)")
+st.caption("Enter any NSE Symbol (e.g. YESBANK, IDEA, TATASTEEL)")
+search_symbol = st.text_input("Stock Symbol:", "").upper().strip()
 
 if search_symbol:
-    with st.spinner(f"Fetching full details for {search_symbol}..."):
+    with st.spinner(f"Analyzing {search_symbol} with Darvas Logic..."):
         data = get_stock_data(search_symbol) # यह किसी भी स्टॉक को खोज लेगा
         
         if data:
             # Status Logic
             status = "HOLD"
-            color = "orange"
+            color = "#856404" # Yellowish
+            
             if data['close'] > data['entry']:
-                if data['rvol'] > 1.5: status = "STRONG BUY 🚀"; color = "green"
-                else: status = "BUY / HOLD 🟢"; color = "green"
+                if data['rvol'] > 1.5: 
+                    status = "STRONG BUY 🚀"
+                    color = "#155724" # Green
+                else: 
+                    status = "BUY / HOLD 🟢"
+                    color = "#006400" # Dark Green
             elif data['close'] < data['sl']:
-                status = "EXIT 🔴"; color = "red"
+                status = "EXIT 🔴"
+                color = "#721c24" # Red
             
-            # Show Data
-            st.markdown(f"## {data['symbol']} : <span style='color:{color}'>{status}</span>", unsafe_allow_html=True)
-            
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Price", f"₹{data['close']:.2f}")
-            c2.metric("Entry Level", f"₹{data['entry']:.2f}")
-            c3.metric("Stop Loss", f"₹{data['sl']:.2f}")
-            c4.metric("Volume Surge", f"{data['rvol']:.1f}x")
+            # --- Result Card for Search ---
+            st.markdown(f"""
+            <div style="background-color: #f8f9fa; border: 2px solid {color}; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: {color}; margin: 0;">{data['symbol']}</h2>
+                <h3 style="color: {color};">{status}</h3>
+                <hr>
+                <div style="display: flex; justify-content: space-around;">
+                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
+                    <div><b>Entry Level:</b><br>₹{data['entry']:.2f}</div>
+                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
+                    <div><b>Volume:</b><br>{data['rvol']:.1f}x</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             
             # Fundamenatals Box
             st.markdown(f"""
@@ -172,14 +198,14 @@ if search_symbol:
             """, unsafe_allow_html=True)
             
             # TradingView Chart
-            st.markdown(f"[View Live Chart on TradingView](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
+            st.markdown(f"👉 [**Open Live Chart on TradingView**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
         else:
-            st.error("Stock not found or invalid symbol. Please try NSE symbol (e.g. RELIANCE).")
+            st.error("Stock not found. Please verify the NSE symbol (e.g. SUZLON).")
 
 st.markdown("---")
 
 # --- सेक्शन 2: ऑटोमैटिक स्कैनर (500 Stocks) ---
-st.markdown("### 📊 Nifty 500 Scanner")
+st.markdown("### 📊 Full Market Scanner (Nifty 500)")
 
 if start_scan:
     progress_bar = st.progress(0)
@@ -205,39 +231,7 @@ if start_scan:
                 "Stock": data['symbol'],
                 "Price": data['close'],
                 "Entry": data['entry'],
-                "Target": data['target'] if 'target' in data else target, # Quick fix
+                "Target": data['target'] if 'target' in data else target, 
                 "Stop Loss": data['sl'],
                 "Gain %": pct_change,
-                "Status": status
-            })
-
-    progress_bar.empty()
-    status_text.empty()
-    
-    if valid_data:
-        df = pd.DataFrame(valid_data)
-        
-        # कार्ड्स
-        col1, col2, col3 = st.columns(3)
-        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Stocks Scanned</p></div>", unsafe_allow_html=True)
-        col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
-        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
-        
-        # एडवाइस
-        st.info("💡 **Strategy:** Buy ONLY if 'Status' is STRONG BUY (>1.5x Volume) and Gain is < 3%.")
-        
-        # टेबल
-        def color_row(val):
-            if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
-            if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
-            return ''
-            
-        st.dataframe(
-            df.style.map(color_row, subset=['Status']).format({"Price": "{:.2f}", "Entry": "{:.2f}", "Target": "{:.2f}", "Gain %": "{:.2f}%"}),
-            use_container_width=True, height=600, hide_index=True
-        )
-    else:
-        st.warning("No stocks matched the breakout criteria today.")
-else:
-    st.info("Click 'SCAN NIFTY 500' in sidebar to start full market scan.")
-        
+                "Status

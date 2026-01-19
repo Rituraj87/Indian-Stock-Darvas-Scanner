@@ -213,10 +213,63 @@ def get_stock_data(symbol):
 st.title("🦅 Darvas Pro Market Scanner")
 st.markdown("### Nifty 500 Real-Time Analysis")
 
+# --- सेक्शन 1: यूनिवर्सल सर्च बार ---
+st.markdown("### 🔍 Universal Search (Check Any Stock)")
+st.caption("Enter any NSE Symbol (e.g. YESBANK, IDEA, TATASTEEL)")
+search_symbol = st.text_input("Stock Symbol:", "").upper().strip()
+
+if search_symbol:
+    # --- : .NS ऑटोमैटिक लगाना ---
+    full_symbol = search_symbol if search_symbol.endswith(".NS") else f"{search_symbol}.NS"
+    
+    with st.spinner(f"Analyzing {full_symbol}..."):
+        data = get_stock_data(full_symbol)
+        
+        if data:
+            status = "HOLD"
+            color = "#856404"
+            
+            if data['close'] > data['entry']:
+                if data['rvol'] > 1.5: 
+                    status = "STRONG BUY 🚀"
+                    color = "#155724"
+                else: 
+                    status = "BUY / HOLD 🟢"
+                    color = "#006400"
+            elif data['close'] < data['sl']:
+                status = "EXIT 🔴"
+                color = "#721c24"
+            
+            st.markdown(f"""
+            <div style="background-color: #f8f9fa; border: 2px solid {color}; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: {color}; margin: 0;">{data['symbol']}</h2>
+                <h3 style="color: {color};">{status}</h3>
+                <hr>
+                <div style="display: flex; justify-content: space-around;">
+                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
+                    <div><b>Entry Level:</b><br>₹{data['entry']:.2f}</div>
+                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
+                    <div><b>Volume:</b><br>{data['rvol']:.1f}x</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div class="fund-box">
+                <b>🏢 Sector:</b> {data['sector']} | 
+                <b>💰 M.Cap:</b> ₹{int(data['mcap'])} Cr | 
+                <b>📉 PE:</b> {data['pe']:.2f}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"👉 [**View Live Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
+        else:
+            st.error(f"Stock '{full_symbol}' not found. Please check spelling.")
+
 # स्कैन बटन दबाने पर ही सब दिखेगा
 if start_scan:
     
-    # 1. स्कैनिंग प्रोसेस
+    # 2. स्कैनिंग प्रोसेस
     progress_bar = st.progress(0)
     status_text = st.empty()
     valid_data = []
@@ -266,7 +319,7 @@ if start_scan:
     # DataFrame बनाना
     df = pd.DataFrame(valid_data)
     
-    # --- 2. SEARCH BAR (कार्ड्स के ऊपर) ---
+    # --- 3. SEARCH BAR (कार्ड्स के ऊपर) ---
     st.markdown("### 🔍 Search Stock")
     search_query = st.text_input("Enter stock name (e.g. TATA, ADANI):", "")
 
@@ -274,7 +327,7 @@ if start_scan:
     if search_query:
         df = df[df['Stock'].str.contains(search_query.upper())]
 
-    # --- 3. METRIC CARDS (कार्ड स्टाइल) ---
+    # --- 4. METRIC CARDS (कार्ड स्टाइल) ---
     if not df.empty:
         total_found = len(df)
         strong_buys = len(df[df['Status'] == 'STRONG BUY'])
@@ -306,7 +359,7 @@ if start_scan:
             </div>
             """, unsafe_allow_html=True)
 
-        # --- 4. TRADING ADVICE NOTIFICATION (कार्ड्स के नीचे) ---
+        # --- 5. TRADING ADVICE NOTIFICATION (कार्ड्स के नीचे) ---
         st.markdown("""
         <div class="advice-box">
             <b>💡 TRADING RULES & NOTIFICATION:</b><br>
@@ -316,7 +369,7 @@ if start_scan:
         </div>
         """, unsafe_allow_html=True)
 
-        # --- 5. DATA TABLE ---
+        # --- 6. DATA TABLE ---
         def color_status(val):
             if 'EXIT' in val: return 'background-color: #ffcccc; color: #b30000; font-weight: bold;'
             elif 'STRONG BUY' in val: return 'background-color: #d4edda; color: #155724; font-weight: bold;'

@@ -10,61 +10,67 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. 3D ADVANCED CSS (New Styles) ---
+# --- 2. ADVANCED CSS (3D Cards, Big Fonts, Styling) ---
 st.markdown("""
 <style>
-    /* 1. 3D Search Bar Style */
+    /* सर्च बार स्टाइल */
     .stTextInput > div > div > input {
-        border-radius: 15px;
-        border: none;
-        padding: 15px;
-        font-size: 18px;
-        background: #f0f2f6;
-        box-shadow: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff; /* Neumorphic 3D Look */
-        color: #333;
-        font-weight: bold;
+        border-radius: 10px;
+        border: 2px solid #2980b9;
+        padding: 12px;
+        font-size: 18px; /* बड़ा फोंट */
     }
 
-    /* 2. 3D Dashboard Cards */
+    /* --- 3D कार्ड स्टाइल (Shadows + Lift Effect) --- */
     .dashboard-card {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* 3D Shadow */
         padding: 25px;
-        border-radius: 20px;
+        border-radius: 15px;
         text-align: center;
         color: white;
         margin-bottom: 25px;
-        transition: transform 0.3s;
-        /* Deep 3D Shadow */
-        box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 6px 6px rgba(0,0,0,0.22);
-        border: 1px solid rgba(255,255,255,0.2);
+        transform: translateY(-5px); /* थोड़ा उठा हुआ */
+        transition: all 0.3s cubic-bezier(.25,.8,.25,1);
     }
     .dashboard-card:hover {
-        transform: translateY(-5px); /* Hover Effect */
+        box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        transform: translateY(-10px); /* होवर करने पर और ऊपर उठेगा */
     }
 
-    /* Gradients for Cards */
-    .card-blue { background: linear-gradient(135deg, #0061ff 0%, #60efff 100%); }
+    /* कार्ड कलर्स */
+    .card-blue { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
     .card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    .card-red { background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); }
+    .card-red { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
 
-    /* 3. Big Font Size */
+    /* कार्ड फोंट्स (बड़ा साइज़) */
     .card-value {
-        font-size: 48px; /* Very Big Font */
+        font-size: 42px !important; /* बहुत बड़ा नंबर */
         font-weight: 800;
         margin: 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.4); /* Text Shadow */
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
     .card-label {
-        font-size: 18px;
+        font-size: 18px !important; /* बड़ा लेबल */
         font-weight: 600;
         opacity: 0.95;
+        margin-top: 5px;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
-    /* 4. Table Header Style */
-    thead tr th:first-child { display:none }
-    tbody th { display:none }
-    
+    /* एडवाइस नोटिफिकेशन बॉक्स (No Change) */
+    .advice-box {
+        background-color: #f0f8ff;
+        border-left: 6px solid #2196F3;
+        padding: 15px;
+        border-radius: 5px;
+        color: #0c5460;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-size: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
     /* बटन स्टाइल */
     div.stButton > button {
         width: 100%;
@@ -72,10 +78,9 @@ st.markdown("""
         color: white;
         font-weight: bold;
         border: none;
-        padding: 15px;
-        border-radius: 12px;
-        font-size: 18px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -85,7 +90,7 @@ MY_PASSWORD = "admin"
 def check_password():
     if "password_correct" not in st.session_state: st.session_state.password_correct = False
     if not st.session_state.password_correct:
-        st.header("🔒 Secure Login")
+        st.header("🔒 Login")
         pwd = st.text_input("Password:", type="password")
         if st.button("LOGIN"):
             if pwd == MY_PASSWORD: st.session_state.password_correct = True; st.rerun()
@@ -98,10 +103,12 @@ with st.sidebar:
     st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Bullish Momentum", use_column_width=True)
     st.title("NSE MARKET PRO")
     st.markdown("---")
-    start_scan = st.button("🚀 SCAN NIFTY 500", type="primary")
-    st.caption("Scanning 500+ stocks (approx 3 mins)")
+    
+    # स्कैन बटन
+    start_scan = st.button("🚀 SCAN FULL MARKET (500)", type="primary")
+    st.caption("Scanning 500 stocks may take 3-5 mins.")
 
-# --- 5. FULL STOCK LIST (500+) ---
+# --- 5. NIFTY 500 FULL LIST ---
 STOCKS = [
     "RELIANCE.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "ITC.NS", "TCS.NS", "L&T.NS", "AXISBANK.NS", "KOTAKBANK.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS", "ASIANPAINT.NS", "MARUTI.NS", "HCLTECH.NS", "TITAN.NS", "SUNPHARMA.NS", "ULTRACEMCO.NS", "TATAMOTORS.NS", "M&M.NS", "NTPC.NS", "POWERGRID.NS", "JSWSTEEL.NS", "TATASTEEL.NS", "ADANIENT.NS", "HINDUNILVR.NS", "GRASIM.NS", "COALINDIA.NS", "ONGC.NS", "TECHM.NS", "HINDALCO.NS", "WIPRO.NS", "DIVISLAB.NS", "CIPLA.NS", "SBILIFE.NS", "DRREDDY.NS", "BAJAJFINSV.NS", "BPCL.NS", "BRITANNIA.NS", "EICHERMOT.NS", "HEROMOTOCO.NS", "TATACONSUM.NS", "INDUSINDBK.NS", "APOLLOHOSP.NS", "UPL.NS", "LICI.NS", "ADANIPORTS.NS", "DMART.NS", "ZOMATO.NS", "HAL.NS", "BEL.NS", "JIOFIN.NS", "VBL.NS", "TRENT.NS", "SIEMENS.NS", "IOC.NS", "DLF.NS", "BANKBARODA.NS", "CHOLAFIN.NS", "GAIL.NS", "RECLTD.NS", "SHRIRAMFIN.NS", "PFC.NS",
     "ADANIPOWER.NS", "ABB.NS", "HAVELLS.NS", "AMBUJACEM.NS", "CANBK.NS", "TVSMOTOR.NS", "DABUR.NS", "VEDL.NS", "PNB.NS", "INDIGO.NS", "NAUKRI.NS", "ICICIPRULI.NS", "PIDILITIND.NS", "SBICARD.NS", "LODHA.NS", "JINDALSTEL.NS", "POLYCAB.NS", "IRCTC.NS", "CUMMINSIND.NS", "BOSCHLTD.NS", "MCDOWELL-N.NS", "PERSISTENT.NS", "MUTHOOTFIN.NS", "ASHOKLEY.NS", "MRF.NS", "PIIND.NS", "IDFCFIRSTB.NS", "ASTRAL.NS", "TATACOMM.NS", "PHOENIXLTD.NS", "MPHASIS.NS", "SUPREMEIND.NS", "TIINDIA.NS", "LALPATHLAB.NS", "AUBANK.NS", "CONCOR.NS", "ABCAPITAL.NS", "TATACHEM.NS", "FEDERALBNK.NS", "OBEROIRLTY.NS", "LTTS.NS", "ATUL.NS", "COROMANDEL.NS", "GMRINFRA.NS", "WHIRLPOOL.NS", "ALKEM.NS", "COFORGE.NS", "TDPOWERSYS.NS", "BHEL.NS", "SAIL.NS", "NATIONALUM.NS", "BANDHANBNK.NS", "GUJGASLTD.NS", "IPCALAB.NS", "LAURUSLABS.NS", "TATAELXSI.NS", "DEEPAKNTR.NS", "CROMPTON.NS", "ACC.NS", "DALBHARAT.NS", "JSL.NS", "APLAPOLLO.NS",
@@ -109,13 +116,13 @@ STOCKS = [
     "HBLPOWER.NS", "TITAGARH.NS", "TEXRAIL.NS", "JWL.NS", "RKFORGE.NS", "ELECTCAST.NS", "GABRIEL.NS", "PRICOLLTD.NS", "SUBROS.NS", "LUMAXIND.NS", "MINDA CORP.NS", "UNOMINDA.NS", "ENDURANCE.NS", "CRAFTSMAN.NS", "JAMNAAUTO.NS", "GNA.NS", "ROLEXRINGS.NS", "SFL.NS", "TIMKEN.NS", "SCHAEFFLER.NS", "SKFINDIA.NS", "AIAENG.NS", "THERMAX.NS", "TRIVENI.NS", "PRAJIND.NS", "BALRAMCHIN.NS", "EIDPARRY.NS", "RENUKA.NS", "TRIVENITURB.NS", "KIRLOSENG.NS", "ELGIEQUIP.NS", "INGERRAND.NS", "KSB.NS", "POWERINDIA.NS", "HITACHI.NS", "VOLTAS.NS", "BLUESTARCO.NS", "KAJARIACER.NS", "CERA.NS", "SOMANYCERA.NS", "GREENPANEL.NS", "CENTURYPLY.NS", "STYLAMIND.NS", "PRINCEPIPE.NS", "FINPIPE.NS", "JINDALSAW.NS", "WELCORP.NS", "MAHARSEAM.NS", "RATNAMANI.NS", "APLLTD.NS", "ALEMBICLTD.NS", "ERIS.NS", "AJANTPHARM.NS", "JBITHEM.NS", "NATCOPHARM.NS", "PFIZER.NS", "SANOFI.NS", "ABBOTINDIA.NS", "GLAXO.NS", "ASTERDM.NS", "NARAYANA.NS", "KIMS.NS",
     "RAINBOW.NS", "METROPOLIS.NS", "LALPATHLAB.NS", "THYROCARE.NS", "VIJAYA.NS", "FORTIS.NS", "MAXHEALTH.NS", "NH.NS", "HCG.NS", "POLYMED.NS", "LINDEINDIA.NS", "FLUOROCHEM.NS", "AETHER.NS", "CLEAN.NS", "FINEORG.NS", "VINATIORGA.NS", "ROSSARI.NS", "NOCIL.NS", "SUMICHEM.NS", "UPL.NS", "RALLIS.NS", "CHAMBLFERT.NS", "GNFC.NS", "GSFC.NS", "DEEPAKFERT.NS", "PARADEEP.NS", "IPL.NS", "CASTROLIND.NS", "GULFOILLUB.NS", "BLS.NS", "REDINGTON.NS", "ECLERX.NS", "FSL.NS", "TANLA.NS", "ROUTE.NS", "MASTEK.NS", "INTELLECT.NS", "HAPPSTMNDS.NS", "LATENTVIEW.NS", "MAPMYINDIA.NS", "RATEGAIN.NS", "NAZARA.NS", "PBFINTECH.NS", "PAYTM.NS", "NYKAA.NS", "DELHIVERY.NS", "HONASA.NS", "RRKABEL.NS", "CAMS.NS", "KFINTECH.NS", "PRUDENT.NS", "ANANDRATHI.NS", "SHAREINDIA.NS", "GEJTL.NS", "STARCEMENT.NS", "JKCEMENT.NS", "JKLAKSHMI.NS", "BIRLACORPN.NS", "HEIDELBERG.NS", "NUVOCO.NS", "ORIENTCEM.NS", "SAGCEM.NS", "KCP.NS", "INDIACEM.NS",
     "PRISMJOHN.NS", "AARTIIND.NS", "ATUL.NS", "SUDARSCHEM.NS", "LAOPALA.NS", "BORORENEW.NS", "ASAHIINDIA.NS", "VIPIND.NS", "SAFARI.NS", "TTKPRESTIG.NS", "HAWKINS.NS", "SYMPHONY.NS", "ORIENTELEC.NS", "VGUARD.NS", "IFBIND.NS", "JOHNSONCON.NS", "AMBER.NS", "DIXON.NS", "PGHH.NS", "GILLETTE.NS", "EMAMILTD.NS", "MARICO.NS", "GODREJCP.NS", "JYOTHYLAB.NS", "VARROC.NS", "MOTHERSON.NS", "BOSCHLTD.NS", "WABAG.NS", "VAIBHAVGBL.NS", "PCJEWELLER.NS", "THANGAMAYL.NS", "SENCO.NS", "GOLDIAM.NS", "RADICO.NS", "UBL.NS", "SULA.NS", "GMMPFAUDLR.NS", "TEJASNET.NS", "ITI.NS", "HFCL.NS", "STERLITE.NS", "INDUSTOWER.NS", "BHARTIARTL.NS", "TATACOMM.NS", "GSPL.NS", "MGL.NS", "IGL.NS", "GUJGASLTD.NS", "ATGL.NS", "PETRONET.NS", "OIL.NS", "ONGC.NS", "HINDPETRO.NS", "BPCL.NS", "IOC.NS", "CHENNPETRO.NS", "MRPL.NS", "AEGISLOG.NS", "CONFIPET.NS", "DEEPINDS.NS", "HOEC.NS", "SELAN.NS", "JINDALDRILL.NS", "SWSOLAR.NS", "BOROLTD.NS",
-    "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "TORNTPOWER.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "ADANIPOWER.NS", "JSWENERGY.NS", "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HBLPOWER.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS", "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS"
+    "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "TORNTPOWER.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "ADANIPOWER.NS", "JSWENERGY.NS", "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HBLPOWER.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS", "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "FACT.NS", "CHAMBLFERT.NS", "GNFC.NS", "DEEPAKFERT.NS", "COROMANDEL.NS"
 ]
 
 @st.cache_data(ttl=900)
 def get_stock_data(symbol):
     try:
-        # Fix: .NS logic handled here
+        # Fix: Ensure .NS is attached
         if not symbol.endswith(".NS"): symbol = f"{symbol}.NS"
         
         ticker = yf.Ticker(symbol)
@@ -133,7 +140,6 @@ def get_stock_data(symbol):
         cur_vol = get_val(df['Volume'].iloc[-1])
         rvol = cur_vol / avg_vol if avg_vol > 0 else 0
         
-        # Fundamentals
         info = ticker.info
         mcap = info.get("marketCap", 0) / 10000000 
         pe = info.get("trailingPE", 0)
@@ -147,60 +153,56 @@ def get_stock_data(symbol):
     except: return None
 
 # --- 6. मुख्य ऐप ---
-st.title("🦅 Darvas Pro 3D")
+st.title("🦅 Darvas Pro Market Scanner")
 
-# --- सेक्शन 1: UNIVERSAL SEARCH (FIXED) ---
-st.markdown("### 🔍 3D Search Stock")
-st.caption("Search ANY stock (e.g. YESBANK, SUZLON, TATASTEEL)")
+# --- सेक्शन 1: यूनिवर्सल सर्च बार (SEARCH ANY STOCK) ---
+st.markdown("### 🔍 Universal Search (Check Any Stock)")
+st.caption("Enter any NSE Symbol (e.g. YESBANK, IDEA, TATASTEEL)")
+search_symbol = st.text_input("Stock Symbol:", "").upper().strip()
 
-# 3D सर्च बार इनपुट
-search_query = st.text_input("", placeholder="Enter Stock Symbol...", label_visibility="collapsed").upper().strip()
-
-if search_query:
-    # Logic: अगर .NS नहीं है तो लगाओ
-    full_symbol = search_query if search_query.endswith(".NS") else f"{search_query}.NS"
-    
-    with st.spinner(f"Searching {full_symbol}..."):
-        data = get_stock_data(full_symbol)
+if search_symbol:
+    # --- Fix: Search Bar Logic ---
+    # अब यह तुरंत सर्च करेगा, स्कैन बटन दबाने की जरूरत नहीं
+    with st.spinner(f"Analyzing {search_symbol}..."):
+        data = get_stock_data(search_symbol) 
         
         if data:
             status = "HOLD"
-            color_code = "#b38f00" # Gold
-            
+            color = "#856404"
             if data['close'] > data['entry']:
                 if data['rvol'] > 1.5: 
                     status = "STRONG BUY 🚀"
-                    color_code = "#28a745" # Green
+                    color = "#155724"
                 else: 
                     status = "BUY / HOLD 🟢"
-                    color_code = "#218838"
+                    color = "#006400"
             elif data['close'] < data['sl']:
                 status = "EXIT 🔴"
-                color_code = "#dc3545" # Red
+                color = "#721c24"
             
-            # Individual 3D Card for Search
+            # 3D Card for Search Result
             st.markdown(f"""
-            <div style="background-color: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-left: 10px solid {color_code}; text-align: center; color: #333;">
-                <h1 style="margin:0; font-size: 40px; color: #333;">{data['symbol']}</h1>
-                <h2 style="color: {color_code}; font-weight: 800; font-size: 30px;">{status}</h2>
+            <div style="background-color: #f8f9fa; border: 2px solid {color}; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h1 style="color: {color}; margin: 0; font-size: 32px;">{data['symbol']}</h1>
+                <h2 style="color: {color};">{status}</h2>
                 <hr>
-                <div style="display: flex; justify-content: space-around; font-size: 18px; font-weight: bold;">
-                    <div>Current Price<br><span style="color:#007bff">₹{data['close']:.2f}</span></div>
-                    <div>Entry Level<br><span style="color:#28a745">₹{data['entry']:.2f}</span></div>
-                    <div>Stop Loss<br><span style="color:#dc3545">₹{data['sl']:.2f}</span></div>
-                    <div>Volume<br><span style="color:#6c757d">{data['rvol']:.1f}x</span></div>
+                <div style="display: flex; justify-content: space-around; font-size: 18px;">
+                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
+                    <div><b>Entry:</b><br>₹{data['entry']:.2f}</div>
+                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
+                    <div><b>Volume:</b><br>{data['rvol']:.1f}x</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # Chart Link
-            st.markdown(f"<br><center><a href='https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']}' target='_blank' style='background-color:#007bff; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; font-weight:bold;'>📈 Open Live Chart</a></center><hr>", unsafe_allow_html=True)
-            
+            st.markdown(f"👉 [**View Live Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
         else:
-            st.error(f"❌ Stock '{full_symbol}' not found. Please check spelling.")
+            st.error("Stock not found. Please check spelling (e.g. use TATASTEEL instead of TATA).")
 
-# --- सेक्शन 2: ऑटोमैटिक स्कैनर ---
-st.markdown("### 📊 Nifty 500 Dashboard")
+st.markdown("---")
+
+# --- सेक्शन 2: ऑटोमैटिक स्कैनर (500 Stocks) ---
+st.markdown("### 📊 Full Market Scanner (Nifty 500)")
 
 if start_scan:
     progress_bar = st.progress(0)
@@ -208,7 +210,7 @@ if start_scan:
     valid_data = []
     
     for i, stock in enumerate(STOCKS):
-        status_text.caption(f"Analysing {i+1}/{len(STOCKS)}")
+        status_text.caption(f"Analyzing {i+1}/{len(STOCKS)}: {stock}")
         data = get_stock_data(stock) 
         progress_bar.progress((i + 1) / len(STOCKS))
         
@@ -237,23 +239,26 @@ if start_scan:
     if valid_data:
         df = pd.DataFrame(valid_data)
         
-        # 3D CARDS
+        # --- 3D CARDS (Big Font) ---
         col1, col2, col3 = st.columns(3)
-        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Stocks Found</p></div>", unsafe_allow_html=True)
+        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Stocks Scanned</p></div>", unsafe_allow_html=True)
         col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
-        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exit Alerts</p></div>", unsafe_allow_html=True)
+        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
         
-        # RULES BOX
+        # --- Notification Box (Same as before) ---
         st.markdown("""
-        <div style="background-color: #e3f2fd; border-left: 5px solid #2196F3; padding: 15px; border-radius: 10px; margin: 20px 0;">
-            <b>💡 TRADING RULES:</b> Only buy if <b>Status is STRONG BUY</b> (Volume > 1.5x) and Gain is < 3%.
+        <div class="advice-box">
+            <b>💡 TRADING RULES & NOTIFICATION:</b><br>
+            ✅ <b>STRONG BUY:</b> Only enter if <b>Volume is > 1.5x</b> and Price Gain is between <b>0.5% to 3%</b> from Entry Price.<br>
+            ⚠️ <b>AVOID/RISKY:</b> If stock has already moved <b>> 5%</b> from Entry (Chase mat karein).<br>
+            🛑 <b>EXIT:</b> If price closes below the Stop Loss level immediately.
         </div>
         """, unsafe_allow_html=True)
         
-        # STYLISH TABLE (No content change)
+        # --- Table (No Changes to Columns) ---
         def color_row(val):
-            if 'STRONG' in val: return 'background-color: #d1e7dd; color: #0f5132; font-weight: bold;'
-            if 'EXIT' in val: return 'background-color: #f8d7da; color: #842029; font-weight: bold;'
+            if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
+            if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
             return ''
             
         st.dataframe(
@@ -268,6 +273,6 @@ if start_scan:
             hide_index=True
         )
     else:
-        st.warning("No stocks matched criteria today.")
+        st.warning("No stocks matched the breakout criteria today.")
 else:
-    st.info("Click 'SCAN NIFTY 500' to start.")
+    st.info("Click 'SCAN FULL MARKET' in sidebar to start.")

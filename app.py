@@ -140,41 +140,53 @@ st.markdown("### 🔍 Search Any Stock (2000+ Companies)")
 search_symbol = st.text_input("Enter Symbol (e.g. SUZLON, YESBANK, MRF):", "").upper()
 
 if search_symbol:
-    with st.spinner(f"Fetching full details for {search_symbol}..."):
-        data = get_stock_data(search_symbol) # यह किसी भी स्टॉक को खोज लेगा
+    # --- फिक्स (FIX): .NS ऑटोमैटिक लगाना ---
+    full_symbol = search_symbol if search_symbol.endswith(".NS") else f"{search_symbol}.NS"
+    
+    with st.spinner(f"Analyzing {full_symbol}..."):
+        data = get_stock_data(full_symbol)
         
         if data:
-            # Status Logic
             status = "HOLD"
-            color = "orange"
+            color = "#856404"
+            
             if data['close'] > data['entry']:
-                if data['rvol'] > 1.5: status = "STRONG BUY 🚀"; color = "green"
-                else: status = "BUY / HOLD 🟢"; color = "green"
+                if data['rvol'] > 1.5: 
+                    status = "STRONG BUY 🚀"
+                    color = "#155724"
+                else: 
+                    status = "BUY / HOLD 🟢"
+                    color = "#006400"
             elif data['close'] < data['sl']:
-                status = "EXIT 🔴"; color = "red"
+                status = "EXIT 🔴"
+                color = "#721c24"
             
-            # Show Data
-            st.markdown(f"## {data['symbol']} : <span style='color:{color}'>{status}</span>", unsafe_allow_html=True)
-            
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Price", f"₹{data['close']:.2f}")
-            c2.metric("Entry Level", f"₹{data['entry']:.2f}")
-            c3.metric("Stop Loss", f"₹{data['sl']:.2f}")
-            c4.metric("Volume Surge", f"{data['rvol']:.1f}x")
-            
-            # Fundamenatals Box
             st.markdown(f"""
-            <div class="fund-box">
-                <b>🏢 Sector:</b> {data['sector']} | 
-                <b>💰 Market Cap:</b> ₹{int(data['mcap'])} Cr | 
-                <b>📉 PE Ratio:</b> {data['pe']:.2f}
+            <div style="background-color: #f8f9fa; border: 2px solid {color}; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: {color}; margin: 0;">{data['symbol']}</h2>
+                <h3 style="color: {color};">{status}</h3>
+                <hr>
+                <div style="display: flex; justify-content: space-around;">
+                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
+                    <div><b>Entry Level:</b><br>₹{data['entry']:.2f}</div>
+                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
+                    <div><b>Volume:</b><br>{data['rvol']:.1f}x</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # TradingView Chart
-            st.markdown(f"[View Live Chart on TradingView](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
+            st.markdown(f"""
+            <div class="fund-box">
+                <b>🏢 Sector:</b> {data['sector']} | 
+                <b>💰 M.Cap:</b> ₹{int(data['mcap'])} Cr | 
+                <b>📉 PE:</b> {data['pe']:.2f}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"👉 [**View Live Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
         else:
-            st.error("Stock not found or invalid symbol. Please try NSE symbol (e.g. RELIANCE).")
+            st.error(f"Stock '{full_symbol}' not found. Please check spelling.")
+            
 
 st.markdown("---")
 

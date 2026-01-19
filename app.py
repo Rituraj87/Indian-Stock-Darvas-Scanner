@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS (3D Cards, Big Fonts, Styling) ---
+# --- 2. ADVANCED CSS (3D Cards, Styling) ---
 st.markdown("""
 <style>
     /* सर्च बार स्टाइल */
@@ -18,69 +18,53 @@ st.markdown("""
         border-radius: 10px;
         border: 2px solid #2980b9;
         padding: 12px;
-        font-size: 18px; /* बड़ा फोंट */
+        font-size: 18px;
     }
 
-    /* --- 3D कार्ड स्टाइल (Shadows + Lift Effect) --- */
+    /* 3D कार्ड्स */
     .dashboard-card {
-        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* 3D Shadow */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         padding: 25px;
         border-radius: 15px;
         text-align: center;
         color: white;
         margin-bottom: 25px;
-        transform: translateY(-5px); /* थोड़ा उठा हुआ */
-        transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+        transform: translateY(-5px);
+        transition: all 0.3s;
     }
-    .dashboard-card:hover {
-        box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-        transform: translateY(-10px); /* होवर करने पर और ऊपर उठेगा */
-    }
-
-    /* कार्ड कलर्स */
+    .dashboard-card:hover { transform: translateY(-10px); }
     .card-blue { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
     .card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
     .card-red { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
 
-    /* कार्ड फोंट्स (बड़ा साइज़) */
-    .card-value {
-        font-size: 42px !important; /* बहुत बड़ा नंबर */
-        font-weight: 800;
-        margin: 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    .card-label {
-        font-size: 18px !important; /* बड़ा लेबल */
-        font-weight: 600;
-        opacity: 0.95;
-        margin-top: 5px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+    /* बड़ा फोंट */
+    .card-value { font-size: 42px !important; font-weight: 800; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .card-label { font-size: 18px !important; font-weight: 600; margin-top: 5px; text-transform: uppercase; }
 
-    /* एडवाइस नोटिफिकेशन बॉक्स (No Change) */
+    /* फंडामेंटल बॉक्स (Search Result) */
+    .fund-box {
+        background-color: #ffffff;
+        border-left: 5px solid #2980b9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-top: 20px;
+        color: #333;
+    }
+    .fund-title { font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+    .fund-item { font-size: 16px; margin-bottom: 5px; }
+
+    /* एडवाइस बॉक्स */
     .advice-box {
-        background-color: #f0f8ff;
-        border-left: 6px solid #2196F3;
-        padding: 15px;
-        border-radius: 5px;
-        color: #0c5460;
-        margin-top: 10px;
-        margin-bottom: 20px;
-        font-size: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background-color: #f0f8ff; border-left: 6px solid #2196F3;
+        padding: 15px; border-radius: 5px; color: #0c5460;
+        margin-top: 10px; margin-bottom: 20px; font-size: 15px;
     }
 
-    /* बटन स्टाइल */
+    /* बटन */
     div.stButton > button {
-        width: 100%;
-        background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%);
-        color: white;
-        font-weight: bold;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 16px;
+        width: 100%; background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%);
+        color: white; font-weight: bold; border: none; padding: 12px; border-radius: 8px; font-size: 16px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -103,8 +87,6 @@ with st.sidebar:
     st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Bullish Momentum", use_column_width=True)
     st.title("NSE MARKET PRO")
     st.markdown("---")
-    
-    # स्कैन बटन
     start_scan = st.button("🚀 SCAN FULL MARKET (500)", type="primary")
     st.caption("Scanning 500 stocks may take 3-5 mins.")
 
@@ -120,7 +102,7 @@ STOCKS = [
 ]
 
 @st.cache_data(ttl=900)
-def get_stock_data(symbol):
+def get_stock_data(symbol, fetch_fundamentals=False):
     try:
         # Fix: Ensure .NS is attached
         if not symbol.endswith(".NS"): symbol = f"{symbol}.NS"
@@ -140,15 +122,19 @@ def get_stock_data(symbol):
         cur_vol = get_val(df['Volume'].iloc[-1])
         rvol = cur_vol / avg_vol if avg_vol > 0 else 0
         
-        info = ticker.info
-        mcap = info.get("marketCap", 0) / 10000000 
-        pe = info.get("trailingPE", 0)
-        sector = info.get("sector", "N/A")
+        # Fundamentals (सिर्फ सर्च बार के लिए, स्कैनिंग के लिए नहीं ताकि स्पीड बनी रहे)
+        mcap, pe, sector, industry = 0, 0, "N/A", "N/A"
+        if fetch_fundamentals:
+            info = ticker.info
+            mcap = info.get("marketCap", 0) / 10000000 
+            pe = info.get("trailingPE", 0)
+            sector = info.get("sector", "N/A")
+            industry = info.get("industry", "N/A")
         
         return {
             "symbol": symbol.replace(".NS", ""),
             "close": close, "entry": entry, "sl": sl, "rvol": rvol,
-            "mcap": mcap, "pe": pe, "sector": sector
+            "mcap": mcap, "pe": pe, "sector": sector, "industry": industry
         }
     except: return None
 
@@ -161,10 +147,12 @@ st.caption("Enter any NSE Symbol (e.g. YESBANK, IDEA, TATASTEEL)")
 search_symbol = st.text_input("Stock Symbol:", "").upper().strip()
 
 if search_symbol:
-    # --- Fix: Search Bar Logic ---
-    # अब यह तुरंत सर्च करेगा, स्कैन बटन दबाने की जरूरत नहीं
-    with st.spinner(f"Analyzing {search_symbol}..."):
-        data = get_stock_data(search_symbol) 
+    # --- Fix: .NS & Detailed Fundamentals ---
+    full_symbol = search_symbol if search_symbol.endswith(".NS") else f"{search_symbol}.NS"
+    
+    with st.spinner(f"Analyzing {full_symbol} (Fundamentals + Technicals)..."):
+        # यहाँ fetch_fundamentals=True भेज रहे हैं
+        data = get_stock_data(full_symbol, fetch_fundamentals=True) 
         
         if data:
             status = "HOLD"
@@ -195,6 +183,19 @@ if search_symbol:
             </div>
             """, unsafe_allow_html=True)
             
+            # --- Fundamental Analysis Box (New) ---
+            st.markdown(f"""
+            <div class="fund-box">
+                <div class="fund-title">📊 Fundamental Analysis</div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <div class="fund-item"><b>🏢 Sector:</b> {data['sector']}</div>
+                    <div class="fund-item"><b>🏭 Industry:</b> {data['industry']}</div>
+                    <div class="fund-item"><b>💰 Market Cap:</b> ₹{int(data['mcap']):,} Cr</div>
+                    <div class="fund-item"><b>📉 P/E Ratio:</b> {data['pe']:.2f}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
             st.markdown(f"👉 [**View Live Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
         else:
             st.error("Stock not found. Please check spelling (e.g. use TATASTEEL instead of TATA).")
@@ -211,7 +212,8 @@ if start_scan:
     
     for i, stock in enumerate(STOCKS):
         status_text.caption(f"Analyzing {i+1}/{len(STOCKS)}: {stock}")
-        data = get_stock_data(stock) 
+        # स्कैनिंग के लिए Fundamentals False (स्पीड के लिए)
+        data = get_stock_data(stock, fetch_fundamentals=False) 
         progress_bar.progress((i + 1) / len(STOCKS))
         
         if data and data['close'] > data['entry']:
@@ -230,6 +232,7 @@ if start_scan:
                 "Target": data['target'] if 'target' in data else target, 
                 "Stop Loss": data['sl'],
                 "Gain %": pct_change,
+                "Volume x": data['rvol'], # Added Volume Column back
                 "Status": status
             })
 
@@ -239,13 +242,13 @@ if start_scan:
     if valid_data:
         df = pd.DataFrame(valid_data)
         
-        # --- 3D CARDS (Big Font) ---
+        # --- 3D CARDS ---
         col1, col2, col3 = st.columns(3)
         col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Stocks Scanned</p></div>", unsafe_allow_html=True)
         col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
         col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
         
-        # --- Notification Box (Same as before) ---
+        # --- Notification Box ---
         st.markdown("""
         <div class="advice-box">
             <b>💡 TRADING RULES & NOTIFICATION:</b><br>
@@ -255,7 +258,7 @@ if start_scan:
         </div>
         """, unsafe_allow_html=True)
         
-        # --- Table (No Changes to Columns) ---
+        # --- Table (With Volume Column Restored) ---
         def color_row(val):
             if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
             if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
@@ -266,7 +269,8 @@ if start_scan:
                 "Price": "{:.2f}", 
                 "Entry": "{:.2f}", 
                 "Target": "{:.2f}", 
-                "Gain %": "{:.2f}%"
+                "Gain %": "{:.2f}%",
+                "Volume x": "{:.1f}x" # Volume Formatting
             }),
             use_container_width=True, 
             height=600, 

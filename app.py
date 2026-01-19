@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS (Card, Search, & Styling) ---
+# --- 2. ADVANCED CSS (Cards, Search Bar, & Styling) ---
 st.markdown("""
 <style>
     /* सर्च बार स्टाइल */

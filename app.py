@@ -242,5 +242,104 @@ STOCKS = [
     "BOROLTD.NS", "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "JSWENERGY.NS",
     "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS",
     "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "AWL.NS", "PATANJALI.NS", "MANYAVAR.NS", "RHIM.NS", "POLICYBZR.NS", "STARHEALTH.NS",
-    "MEDANTA.NS", "BIKAJI.
+    "MEDANTA.NS", "BIKAJI.NS", "CAMPUS.NS", "METROBRAND.NS", "RUSTOMJEE.NS", "KEYSTONE.NS", "SIGNATURE.NS", "SOBHA.NS", "PRESTIGE.NS", "BRIGADE.NS",
+    "GODREJPROP.NS", "SUNTECK.NS", "MAHLIFE.NS", "PURVA.NS", "ASHOKA.NS", "PNCINFRA.NS", "KNRCON.NS", "GRINFRA.NS", "HGINFRA.NS", "DILIPBUILD.NS",
+    "NCC.NS", "HCC.NS", "ITDCEM.NS", "MANINFRA.NS", "JKTYRE.NS", "CEATLTD.NS", "APOLLOTYRE.NS", "BALKRISIND.NS", "TVSSRICHAK.NS", "GOCOLORS.NS",
+    "VMART.NS", "SHOPERSTOP.NS", "TCNSBRANDS.NS", "ARVIND.NS", "RAYMOND.NS", "WELSPUNIND.NS", "GARFIBRES.NS", "LUXIND.NS", "DOLLAR.NS", "RUPA.NS",
+    "KPRMILL.NS", "GOKEX.NS", "SWANENERGY.NS", "TRITURBINE.NS", "ELECON.NS", "AIAENGINE.NS", "TIMKEN.NS", "SCHAEFFLER.NS", "GRINDWELL.NS", "CARBORUNIV.NS",
+    "MMTC.NS", "STCINDIA.NS", "GMDC.NS", "MOIL.NS", "KIOCL.NS", "HINDCOPPER.NS", "HINDZINC.NS", "GPIL.NS", "JAYNECOIND.NS", "LLOYDSME.NS",
+    "IMFA.NS", "MASTEK.NS", "FSL.NS", "ECLERX.NS", "HGS.NS", "DATAMATICS.NS", "CMSINFO.NS", "SIS.NS", "QUESS.NS", "TEAMLEASE.NS",
+    "BLS.NS", "JUSTDIAL.NS", "AFFLE.NS", "INDIAMART.NS", "VAIBHAVGBL.NS", "CARTRADE.NS", "EASYTRIP.NS", "YATRA.NS", "RBA.NS", "WESTLIFE.NS",
+    "BARBEQUE.NS", "SPECIALITY.NS", "CHALET.NS", "LEMONHOTEL.NS", "EIHOTEL.NS", "INDHOTEL.NS", "TAJGVK.NS", "MAHSEAMLES.NS", "APOLLOPIPE.NS", "SURYA.NS"
+]
+
+st.markdown("### 📊 Nifty 500 Live Scanner")
+
+if start_scan:
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    valid_data = []
+    
+    # Sector Stats Store
+    sector_counts = {}
+    
+    for i, stock in enumerate(STOCKS):
+        status_text.caption(f"Analyzing {i+1}/{len(STOCKS)}: {stock}")
+        data = get_stock_data(stock) 
+        progress_bar.progress((i + 1) / len(STOCKS))
+        
+        if data and data['close'] > data['entry']:
+            risk = data['entry'] - data['sl']
+            pct_change = ((data['close'] - data['entry']) / data['entry']) * 100
+            
+            status = "HOLD"
+            if data['close'] < data['sl']: status = "EXIT NOW"
+            elif data['rvol'] > 1.5: status = "STRONG BUY"
+            
+            # Add to list
+            valid_data.append({
+                "Stock": data['symbol'],
+                "Price": data['close'],
+                "Entry": data['entry'],
+                "Target": data['target'],
+                "Stop Loss": data['sl'],
+                "Gain %": pct_change,
+                "Vol Surge": data['rvol'],
+                "Status": status,
+                "Sector": data['sector']
+            })
+            
+            # Count Sector
+            sec = data['sector']
+            sector_counts[sec] = sector_counts.get(sec, 0) + 1
+
+    progress_bar.empty()
+    status_text.empty()
+    
+    if valid_data:
+        df = pd.DataFrame(valid_data)
+        
+        # 3D Cards
+        col1, col2, col3 = st.columns(3)
+        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Found</p></div>", unsafe_allow_html=True)
+        col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
+        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
+        
+        # --- Sector Heatmap (Mini Table) ---
+        st.markdown("#### 🔥 Sector Heatmap (Where is the action?)")
+        sector_df = pd.DataFrame(list(sector_counts.items()), columns=['Sector', 'Count']).sort_values('Count', ascending=False).head(5)
+        st.dataframe(sector_df, use_container_width=True, hide_index=True)
+        
+        # Advice
+        st.markdown("""
+        <div class="advice-box">
+            <b>💡 TRADING RULES & NOTIFICATION:</b><br>
+            ✅ <b>STRONG BUY:</b> Only enter if <b>Volume is > 1.5x</b> and Price Gain is between <b>0.5% to 3%</b> from Entry Price.<br>
+            ⚠️ <b>AVOID/RISKY:</b> If stock has already moved <b>> 5%</b> from Entry (Chase mat karein).<br>
+            🛑 <b>EXIT:</b> If price closes below the Stop Loss level immediately.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Table
+        def color_row(val):
+            if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
+            if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
+            return ''
+            
+        st.dataframe(
+            df.style.map(color_row, subset=['Status']).format({
+                "Price": "{:.2f}", 
+                "Entry": "{:.2f}", 
+                "Target": "{:.2f}", 
+                "Gain %": "{:.2f}%",
+                "Vol Surge": "{:.1f}x"
+            }),
+            use_container_width=True, 
+            height=600, 
+            hide_index=True
+        )
+    else:
+        st.warning("No stocks matched the breakout criteria today.")
+else:
+    st.info("Click 'SCAN FULL MARKET' in sidebar to start.")
         

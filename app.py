@@ -2,52 +2,53 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-# --- 1. पेज कॉन्फ़िगरेशन ---
+# --- 1. पेज सेटिंग्स ---
 st.set_page_config(
-    page_title="Darvas AI Terminal", 
+    page_title="Darvas Elite Terminal", 
     layout="wide", 
     page_icon="🦅",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS (3D Cards, Animations, AI Style) ---
+# --- 2. PROFESSIONAL STYLING (CSS) ---
 st.markdown("""
 <style>
     /* सर्च बार */
     .stTextInput > div > div > input {
-        border-radius: 12px; border: 2px solid #2980b9; padding: 12px; font-size: 18px;
+        border-radius: 10px; border: 2px solid #2980b9; padding: 12px; font-size: 18px;
     }
     
     /* 3D Cards */
     .dashboard-card {
         box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-        padding: 25px; border-radius: 15px; text-align: center; color: white;
-        margin-bottom: 25px; transform: translateY(-5px); transition: 0.3s;
+        padding: 20px; border-radius: 12px; text-align: center; color: white;
+        margin-bottom: 20px; transform: translateY(-5px); transition: 0.3s;
     }
-    .dashboard-card:hover { transform: translateY(-10px); }
+    .dashboard-card:hover { transform: translateY(-8px); }
+    
     .card-blue { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
     .card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
     .card-red { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
-    .card-value { font-size: 42px !important; font-weight: 800; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-    .card-label { font-size: 18px !important; font-weight: 600; opacity: 0.95; }
+    
+    .card-value { font-size: 40px !important; font-weight: 800; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .card-label { font-size: 16px !important; font-weight: 600; opacity: 0.9; text-transform: uppercase; }
 
-    /* AI Analysis Box */
-    .ai-box {
-        background-color: #f1f8e9; border-left: 5px solid #33691e;
-        padding: 15px; border-radius: 8px; margin-top: 15px; color: #333;
+    /* Market Trend Bar */
+    .trend-box {
+        padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 20px; color: white; margin-bottom: 20px;
     }
     
-    /* Support/Resistance Box */
-    .levels-box {
-        background-color: #e3f2fd; border-left: 5px solid #1565c0;
-        padding: 15px; border-radius: 8px; margin-top: 15px; color: #333;
+    /* Notification */
+    .advice-box { 
+        background-color: #e8f5e9; border-left: 6px solid #2e7d32; 
+        padding: 15px; border-radius: 5px; color: #1b5e20; margin: 10px 0; font-size: 15px;
     }
-
-    /* Advice Notification */
-    .advice-box { background-color: #fff3e0; border-left: 6px solid #ff9800; padding: 15px; border-radius: 5px; color: #e65100; margin: 10px 0 20px 0; }
     
     /* Button */
-    div.stButton > button { width: 100%; background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%); color: white; font-weight: bold; padding: 12px; border-radius: 8px; border: none; }
+    div.stButton > button { 
+        width: 100%; background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%); 
+        color: white; font-weight: bold; padding: 12px; border-radius: 8px; border: none; font-size: 16px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -66,13 +67,29 @@ if not check_password(): st.stop()
 
 # --- 4. साइडबार ---
 with st.sidebar:
-    st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Bullish Momentum", use_column_width=True)
-    st.title("DARVAS AI TERMINAL")
+    st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Darvas System", use_column_width=True)
+    st.title("DARVAS ELITE")
     st.markdown("---")
-    start_scan = st.button("🚀 SCAN FULL MARKET", type="primary")
-    st.caption("Scanning 500 stocks takes ~3-5 mins.")
+    start_scan = st.button("🚀 SCAN NIFTY 500", type="primary")
+    st.caption("Darvas Rule: Buy only in Uptrend.")
 
-# --- 5. DATA FUNCTION (Advanced) ---
+# --- 5. DATA ENGINE (Advanced) ---
+@st.cache_data(ttl=900)
+def get_market_trend():
+    # Darvas Rule 1: Check General Market (Nifty 50)
+    try:
+        nifty = yf.Ticker("^NSEI")
+        hist = nifty.history(period="5d")
+        close = hist['Close'].iloc[-1]
+        prev_close = hist['Close'].iloc[-2]
+        
+        # Simple MA check (Close > 50 SMA is ideal, but here we check momentum)
+        trend = "UPTREND 🐂" if close > prev_close else "DOWNTREND 🐻"
+        color = "#2ecc71" if close > prev_close else "#e74c3c"
+        return trend, color, close
+    except:
+        return "NEUTRAL 😐", "#95a5a6", 0
+
 @st.cache_data(ttl=900)
 def get_stock_data(symbol):
     try:
@@ -83,124 +100,108 @@ def get_stock_data(symbol):
         df = ticker.history(period="3mo", interval="1d")
         if len(df) < 30: return None
         
-        # Basic Data
         def get_val(s): return s.iloc[0] if isinstance(s, pd.Series) else s
-        close = get_val(df['Close'].iloc[-1])
-        high = get_val(df['High'].iloc[-1])
-        low = get_val(df['Low'].iloc[-1])
         
+        close = get_val(df['Close'].iloc[-1])
+        
+        # Darvas Box Calculation
         past = df.iloc[:-1]
-        entry = get_val(past['High'].tail(20).max())
-        sl = get_val(past['Low'].tail(20).min())
+        box_high = get_val(past['High'].tail(20).max()) # Upper Box Limit
+        box_low = get_val(past['Low'].tail(20).min())   # Lower Box Limit / Stop Loss
+        
+        # Volume Check
         avg_vol = get_val(past['Volume'].tail(20).mean())
         cur_vol = get_val(df['Volume'].iloc[-1])
         rvol = cur_vol / avg_vol if avg_vol > 0 else 0
         
-        # --- NEW: Target Calculation ---
-        risk = entry - sl
-        target = entry + (risk * 2) # 1:2 Risk Reward
-        
-        # --- NEW: Support & Resistance (Pivot Points) ---
-        pivot = (high + low + close) / 3
-        r1 = (2 * pivot) - low
-        s1 = (2 * pivot) - high
-        
-        # Fundamentals
+        # Darvas Fundamentals (Basic Check)
         try:
             info = ticker.info
             mcap = info.get("marketCap", 0) / 10000000 
             pe = info.get("trailingPE", 0)
             sector = info.get("sector", "N/A")
+            high52 = info.get("fiftyTwoWeekHigh", 0)
         except:
-            mcap, pe, sector = 0, 0, "N/A"
+            mcap, pe, sector, high52 = 0, 0, "N/A", 0
+
+        # Relative Strength (Simple: Is it near 52W High?)
+        is_near_high = close >= (high52 * 0.85) # Darvas liked stocks near ATH
 
         return {
             "symbol": symbol.replace(".NS", ""),
-            "close": close, "entry": entry, "sl": sl, "target": target,
-            "rvol": rvol, "s1": s1, "r1": r1,
-            "mcap": mcap, "pe": pe, "sector": sector
+            "close": close, "entry": box_high, "sl": box_low, 
+            "rvol": rvol, "mcap": mcap, "pe": pe, "sector": sector, 
+            "high52": high52, "near_high": is_near_high
         }
     except: return None
 
-# --- 6. MAIN APP ---
-st.title("🦅 Darvas AI Trading Terminal")
+# --- 6. MAIN INTERFACE ---
+st.title("🦅 Darvas Elite Terminal")
 
-# --- SECTION 1: UNIVERSAL SEARCH (Updated) ---
-st.markdown("### 🔍 AI Universal Search")
-st.caption("Type any stock (e.g. ZOMATO, TATASTEEL)")
-search_symbol = st.text_input("Stock Symbol:", "")
+# --- Step 1: Market Trend Check (Darvas Rule #1) ---
+trend, trend_color, nifty_price = get_market_trend()
+st.markdown(f"""
+<div class="trend-box" style="background-color: {trend_color};">
+    MARKET MOOD: {trend} (Nifty: {nifty_price:.2f})<br>
+    <span style="font-size:14px;">Darvas Principle: "I never buy a stock if the general market is falling."</span>
+</div>
+""", unsafe_allow_html=True)
+
+# --- Step 2: Universal Search ---
+st.markdown("### 🔍 Stock Analyzer (Darvas Method)")
+search_symbol = st.text_input("Enter Symbol (e.g. TRENT, BEL):", "")
 
 if search_symbol:
-    with st.spinner(f"Running AI Analysis on {search_symbol}..."):
+    with st.spinner(f"Applying Darvas Theory on {search_symbol}..."):
         data = get_stock_data(search_symbol)
         
         if data:
-            # Logic
-            status = "HOLD"
-            color = "#856404"
-            sentiment = "NEUTRAL 😐"
+            # Darvas Logic
+            status = "HOLD / WAIT"
+            color = "#f39c12" # Orange
+            msg = "Stock is inside the box. No action."
             
             if data['close'] > data['entry']:
-                if data['rvol'] > 1.5: 
-                    status = "STRONG BUY 🚀"
-                    color = "#155724"
-                    sentiment = "BULLISH 🐂"
-                else: 
-                    status = "BUY / HOLD 🟢"
-                    color = "#006400"
-                    sentiment = "MILDLY BULLISH 🐃"
+                if data['rvol'] > 1.5 and data['near_high']:
+                    status = "DARVAS BUY 🚀"
+                    color = "#27ae60" # Green
+                    msg = "Box Breakout + High Volume + Near 52W High (Perfect Setup)"
+                elif data['rvol'] > 1.5:
+                    status = "BUY (Weak) ⚠️"
+                    color = "#82e0aa"
+                    msg = "Breakout with Volume, but not near All Time Highs."
+                else:
+                    status = "FAKE BREAKOUT?"
+                    color = "#d35400"
+                    msg = "Price broke out, but Volume is low. Be careful."
             elif data['close'] < data['sl']:
-                status = "EXIT 🔴"
-                color = "#721c24"
-                sentiment = "BEARISH 🐻"
+                status = "EXIT NOW 🛑"
+                color = "#c0392b"
+                msg = "Price fell below the Box. Darvas Rule: Sell immediately."
             
-            # --- 3D Result Card (With TARGET) ---
+            # Display Card
             st.markdown(f"""
             <div style="background-color: white; border: 3px solid {color}; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <h1 style="color: {color}; margin: 0;">{data['symbol']}</h1>
-                <h2 style="color: {color};">{status}</h2>
+                <h2 style="color: {color}; margin-top:5px;">{status}</h2>
+                <p style="color: #555; font-style: italic;">"{msg}"</p>
                 <hr>
                 <div style="display: flex; justify-content: space-around; font-size: 18px; color: #333;">
                     <div><b>Price:</b><br>₹{data['close']:.2f}</div>
-                    <div><b>Entry:</b><br>₹{data['entry']:.2f}</div>
-                    <div><b>Target:</b><br>₹{data['target']:.2f}</div>
-                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
+                    <div><b>Box Top (Buy):</b><br>₹{data['entry']:.2f}</div>
+                    <div><b>Box Low (SL):</b><br>₹{data['sl']:.2f}</div>
+                    <div><b>Vol Surge:</b><br>{data['rvol']:.2f}x</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            col_a, col_b = st.columns(2)
-            
-            with col_a:
-                # --- AI Sentiment Box ---
-                st.markdown(f"""
-                <div class="ai-box">
-                    <h4>🤖 AI Technical Sentiment</h4>
-                    <p style="font-size: 20px; font-weight: bold;">{sentiment}</p>
-                    <p><b>Vol Surge:</b> {data['rvol']:.1f}x (Normal is 1.0x)</p>
-                    <p><b>Sector:</b> {data['sector']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with col_b:
-                # --- Auto Levels Box ---
-                st.markdown(f"""
-                <div class="levels-box">
-                    <h4>📐 Auto Support & Resistance</h4>
-                    <p><b>R1 (Resistance):</b> ₹{data['r1']:.2f}</p>
-                    <p><b>S1 (Support):</b> ₹{data['s1']:.2f}</p>
-                    <p style="font-size: 12px;">*Based on Pivot Points</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-            st.markdown(f"👉 [**View Chart on TradingView**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
-
+            st.markdown(f"👉 [**View Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
         else:
-            st.error("Stock not found. Check spelling.")
+            st.error("Stock not found.")
 
 st.markdown("---")
 
-# --- SECTION 2: 500 STOCK SCANNER ---
+# --- Step 3: Nifty 500 Scanner ---
 STOCKS = [
     "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "SBIN.NS", "INFY.NS", "LICI.NS", "ITC.NS", "HINDUNILVR.NS",
     "LT.NS", "BAJFINANCE.NS", "HCLTECH.NS", "MARUTI.NS", "SUNPHARMA.NS", "ADANIENT.NS", "KOTAKBANK.NS", "TITAN.NS", "ONGC.NS", "TATAMOTORS.NS",
@@ -241,30 +242,18 @@ STOCKS = [
     "HINDPETRO.NS", "CHENNPETRO.NS", "MRPL.NS", "AEGISLOG.NS", "CONFIPET.NS", "DEEPINDS.NS", "HOEC.NS", "SELAN.NS", "JINDALDRILL.NS", "SWSOLAR.NS",
     "BOROLTD.NS", "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "JSWENERGY.NS",
     "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS",
-    "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "AWL.NS", "PATANJALI.NS", "MANYAVAR.NS", "RHIM.NS", "POLICYBZR.NS", "STARHEALTH.NS",
-    "MEDANTA.NS", "BIKAJI.NS", "CAMPUS.NS", "METROBRAND.NS", "RUSTOMJEE.NS", "KEYSTONE.NS", "SIGNATURE.NS", "SOBHA.NS", "PRESTIGE.NS", "BRIGADE.NS",
-    "GODREJPROP.NS", "SUNTECK.NS", "MAHLIFE.NS", "PURVA.NS", "ASHOKA.NS", "PNCINFRA.NS", "KNRCON.NS", "GRINFRA.NS", "HGINFRA.NS", "DILIPBUILD.NS",
-    "NCC.NS", "HCC.NS", "ITDCEM.NS", "MANINFRA.NS", "JKTYRE.NS", "CEATLTD.NS", "APOLLOTYRE.NS", "BALKRISIND.NS", "TVSSRICHAK.NS", "GOCOLORS.NS",
-    "VMART.NS", "SHOPERSTOP.NS", "TCNSBRANDS.NS", "ARVIND.NS", "RAYMOND.NS", "WELSPUNIND.NS", "GARFIBRES.NS", "LUXIND.NS", "DOLLAR.NS", "RUPA.NS",
-    "KPRMILL.NS", "GOKEX.NS", "SWANENERGY.NS", "TRITURBINE.NS", "ELECON.NS", "AIAENGINE.NS", "TIMKEN.NS", "SCHAEFFLER.NS", "GRINDWELL.NS", "CARBORUNIV.NS",
-    "MMTC.NS", "STCINDIA.NS", "GMDC.NS", "MOIL.NS", "KIOCL.NS", "HINDCOPPER.NS", "HINDZINC.NS", "GPIL.NS", "JAYNECOIND.NS", "LLOYDSME.NS",
-    "IMFA.NS", "MASTEK.NS", "FSL.NS", "ECLERX.NS", "HGS.NS", "DATAMATICS.NS", "CMSINFO.NS", "SIS.NS", "QUESS.NS", "TEAMLEASE.NS",
-    "BLS.NS", "JUSTDIAL.NS", "AFFLE.NS", "INDIAMART.NS", "VAIBHAVGBL.NS", "CARTRADE.NS", "EASYTRIP.NS", "YATRA.NS", "RBA.NS", "WESTLIFE.NS",
-    "BARBEQUE.NS", "SPECIALITY.NS", "CHALET.NS", "LEMONHOTEL.NS", "EIHOTEL.NS", "INDHOTEL.NS", "TAJGVK.NS", "MAHSEAMLES.NS", "APOLLOPIPE.NS", "SURYA.NS"
+    "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "FACT.NS", "CHAMBLFERT.NS", "GNFC.NS", "DEEPAKFERT.NS", "COROMANDEL.NS"
 ]
 
-st.markdown("### 📊 Nifty 500 Live Scanner")
+st.markdown("### 📊 Nifty 500 Scanner (Darvas Filter)")
 
 if start_scan:
     progress_bar = st.progress(0)
     status_text = st.empty()
     valid_data = []
     
-    # Sector Stats Store
-    sector_counts = {}
-    
     for i, stock in enumerate(STOCKS):
-        status_text.caption(f"Analyzing {i+1}/{len(STOCKS)}: {stock}")
+        status_text.caption(f"Checking {stock}...")
         data = get_stock_data(stock) 
         progress_bar.progress((i + 1) / len(STOCKS))
         
@@ -272,26 +261,23 @@ if start_scan:
             risk = data['entry'] - data['sl']
             pct_change = ((data['close'] - data['entry']) / data['entry']) * 100
             
+            # Darvas Logic Filters
             status = "HOLD"
-            if data['close'] < data['sl']: status = "EXIT NOW"
-            elif data['rvol'] > 1.5: status = "STRONG BUY"
+            if data['close'] < data['sl']: 
+                status = "EXIT NOW"
+            elif data['rvol'] > 1.5: 
+                status = "STRONG BUY"
             
-            # Add to list
+            # Formatting (2 Decimals enforced)
             valid_data.append({
                 "Stock": data['symbol'],
                 "Price": data['close'],
-                "Entry": data['entry'],
-                "Target": data['target'],
+                "Box Top": data['entry'],
                 "Stop Loss": data['sl'],
                 "Gain %": pct_change,
                 "Vol Surge": data['rvol'],
-                "Status": status,
-                "Sector": data['sector']
+                "Status": status
             })
-            
-            # Count Sector
-            sec = data['sector']
-            sector_counts[sec] = sector_counts.get(sec, 0) + 1
 
     progress_bar.empty()
     status_text.empty()
@@ -299,28 +285,21 @@ if start_scan:
     if valid_data:
         df = pd.DataFrame(valid_data)
         
-        # 3D Cards
         col1, col2, col3 = st.columns(3)
-        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Found</p></div>", unsafe_allow_html=True)
+        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Matches</p></div>", unsafe_allow_html=True)
         col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
         col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
         
-        # --- Sector Heatmap (Mini Table) ---
-        st.markdown("#### 🔥 Sector Heatmap (Where is the action?)")
-        sector_df = pd.DataFrame(list(sector_counts.items()), columns=['Sector', 'Count']).sort_values('Count', ascending=False).head(5)
-        st.dataframe(sector_df, use_container_width=True, hide_index=True)
-        
-        # Advice
+        # Darvas Notification
         st.markdown("""
         <div class="advice-box">
-            <b>💡 TRADING RULES & NOTIFICATION:</b><br>
-            ✅ <b>STRONG BUY:</b> Only enter if <b>Volume is > 1.5x</b> and Price Gain is between <b>0.5% to 3%</b> from Entry Price.<br>
-            ⚠️ <b>AVOID/RISKY:</b> If stock has already moved <b>> 5%</b> from Entry (Chase mat karein).<br>
-            🛑 <b>EXIT:</b> If price closes below the Stop Loss level immediately.
+            <b>📜 DARVAS RULES (Strict):</b><br>
+            1. <b>Market Check:</b> Only buy if Nifty is UPTREND.<br>
+            2. <b>Volume:</b> 'Vol Surge' must be > 1.5x.<br>
+            3. <b>Box Theory:</b> Buy exactly when Price crosses 'Box Top'. Stop Loss is 'Box Low'.
         </div>
         """, unsafe_allow_html=True)
         
-        # Table
         def color_row(val):
             if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
             if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
@@ -329,10 +308,10 @@ if start_scan:
         st.dataframe(
             df.style.map(color_row, subset=['Status']).format({
                 "Price": "{:.2f}", 
-                "Entry": "{:.2f}", 
-                "Target": "{:.2f}", 
+                "Box Top": "{:.2f}", 
+                "Stop Loss": "{:.2f}", 
                 "Gain %": "{:.2f}%",
-                "Vol Surge": "{:.1f}x"
+                "Vol Surge": "{:.2f}x"
             }),
             use_container_width=True, 
             height=600, 
@@ -341,5 +320,5 @@ if start_scan:
     else:
         st.warning("No stocks matched the breakout criteria today.")
 else:
-    st.info("Click 'SCAN FULL MARKET' in sidebar to start.")
-        
+    st.info("Click 'SCAN NIFTY 500' to start.")
+            

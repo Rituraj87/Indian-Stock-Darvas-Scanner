@@ -1,54 +1,54 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import numpy as np
 
-# --- 1. पेज सेटिंग्स ---
+# --- 1. पेज कॉन्फ़िगरेशन ---
 st.set_page_config(
-    page_title="Darvas Elite Terminal", 
+    page_title="Darvas AI Prime", 
     layout="wide", 
     page_icon="🦅",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. PROFESSIONAL STYLING (CSS) ---
+# --- 2. ADVANCED CSS (Hedge Fund Style) ---
 st.markdown("""
 <style>
     /* सर्च बार */
     .stTextInput > div > div > input {
-        border-radius: 10px; border: 2px solid #2980b9; padding: 12px; font-size: 18px;
+        border-radius: 12px; border: 2px solid #2980b9; padding: 12px; font-size: 18px;
     }
     
-    /* 3D Cards */
+    /* 3D Glassmorphism Cards */
     .dashboard-card {
-        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-        padding: 20px; border-radius: 12px; text-align: center; color: white;
-        margin-bottom: 20px; transform: translateY(-5px); transition: 0.3s;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 20px;
+        text-align: center;
+        transition: 0.4s;
+        margin-bottom: 20px;
     }
-    .dashboard-card:hover { transform: translateY(-8px); }
+    .dashboard-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
     
-    .card-blue { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
-    .card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    .card-red { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
-    
-    .card-value { font-size: 40px !important; font-weight: 800; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-    .card-label { font-size: 16px !important; font-weight: 600; opacity: 0.9; text-transform: uppercase; }
+    .card-value { font-size: 40px !important; font-weight: 800; margin: 0; background: -webkit-linear-gradient(#1e3c72, #2a5298); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card-label { font-size: 16px !important; font-weight: 600; color: #555; text-transform: uppercase; }
 
-    /* Market Trend Bar */
-    .trend-box {
-        padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 20px; color: white; margin-bottom: 20px;
+    /* AI Score Badge */
+    .ai-badge {
+        background-color: #000; color: #00ff00; padding: 5px 15px; border-radius: 20px;
+        font-weight: bold; font-family: 'Courier New', monospace; border: 1px solid #00ff00;
+        box-shadow: 0 0 10px #00ff00;
     }
-    
-    /* Notification */
-    .advice-box { 
-        background-color: #e8f5e9; border-left: 6px solid #2e7d32; 
-        padding: 15px; border-radius: 5px; color: #1b5e20; margin: 10px 0; font-size: 15px;
-    }
+
+    /* Market Mood Bar */
+    .mood-box { padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: white; margin-bottom: 10px; }
     
     /* Button */
-    div.stButton > button { 
-        width: 100%; background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%); 
-        color: white; font-weight: bold; padding: 12px; border-radius: 8px; border: none; font-size: 16px;
-    }
+    div.stButton > button { width: 100%; background: linear-gradient(90deg, #1cb5e0 0%, #000851 100%); color: white; font-weight: bold; padding: 14px; border-radius: 10px; border: none; font-size: 18px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,39 +57,41 @@ MY_PASSWORD = "admin"
 def check_password():
     if "password_correct" not in st.session_state: st.session_state.password_correct = False
     if not st.session_state.password_correct:
-        st.header("🔒 Login")
-        pwd = st.text_input("Password:", type="password")
-        if st.button("LOGIN"):
+        st.markdown("<h1 style='text-align:center;'>🦅 Darvas AI Prime</h1>", unsafe_allow_html=True)
+        pwd = st.text_input("Enter Access Key:", type="password")
+        if st.button("AUTHENTICATE"):
             if pwd == MY_PASSWORD: st.session_state.password_correct = True; st.rerun()
         return False
     return True
 if not check_password(): st.stop()
 
-# --- 4. साइडबार ---
-with st.sidebar:
-    st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Darvas System", use_column_width=True)
-    st.title("DARVAS ELITE")
-    st.markdown("---")
-    start_scan = st.button("🚀 SCAN NIFTY 500", type="primary")
-    st.caption("Darvas Rule: Buy only in Uptrend.")
-
-# --- 5. DATA ENGINE (Advanced) ---
-@st.cache_data(ttl=900)
-def get_market_trend():
-    # Darvas Rule 1: Check General Market (Nifty 50)
+# --- 4. साइडबार & NIFTY TREND ---
+def get_nifty_trend():
     try:
-        nifty = yf.Ticker("^NSEI")
-        hist = nifty.history(period="5d")
-        close = hist['Close'].iloc[-1]
-        prev_close = hist['Close'].iloc[-2]
+        # Nifty 50 (Trend Check)
+        df = yf.download("^NSEI", period="6mo", interval="1d", progress=False)
+        close = df['Close'].iloc[-1]
+        ema50 = df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]
+        if isinstance(close, pd.Series): close = close.iloc[0]
+        if isinstance(ema50, pd.Series): ema50 = ema50.iloc[0]
         
-        # Simple MA check (Close > 50 SMA is ideal, but here we check momentum)
-        trend = "UPTREND 🐂" if close > prev_close else "DOWNTREND 🐻"
-        color = "#2ecc71" if close > prev_close else "#e74c3c"
-        return trend, color, close
-    except:
-        return "NEUTRAL 😐", "#95a5a6", 0
+        if close > ema50: return "BULLISH 🐂", "#2ecc71" # Green
+        else: return "BEARISH 🐻", "#e74c3c" # Red
+    except: return "NEUTRAL 😐", "#95a5a6"
 
+with st.sidebar:
+    st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="AI Powered Analytics", use_column_width=True)
+    st.title("DARVAS AI PRIME")
+    
+    # Market Mood Indicator
+    mood, color = get_nifty_trend()
+    st.markdown(f"<div class='mood-box' style='background-color: {color};'>MARKET MOOD: {mood}</div>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    start_scan = st.button("🚀 RUN AI SCANNER", type="primary")
+    st.caption("Advanced Calculation: ~4-6 mins")
+
+# --- 5. ADVANCED DATA ENGINE (AI Logic) ---
 @st.cache_data(ttl=900)
 def get_stock_data(symbol):
     try:
@@ -97,111 +99,138 @@ def get_stock_data(symbol):
         if not symbol.endswith(".NS"): symbol = f"{symbol}.NS"
         
         ticker = yf.Ticker(symbol)
-        df = ticker.history(period="3mo", interval="1d")
-        if len(df) < 30: return None
+        df = ticker.history(period="6mo", interval="1d") # Need 6mo for EMA 50
+        if len(df) < 50: return None
         
+        # --- Helper: Get Value safely ---
         def get_val(s): return s.iloc[0] if isinstance(s, pd.Series) else s
         
+        # 1. Basic Prices
         close = get_val(df['Close'].iloc[-1])
+        high = get_val(df['High'].iloc[-1])
+        low = get_val(df['Low'].iloc[-1])
         
-        # Darvas Box Calculation
-        past = df.iloc[:-1]
-        box_high = get_val(past['High'].tail(20).max()) # Upper Box Limit
-        box_low = get_val(past['Low'].tail(20).min())   # Lower Box Limit / Stop Loss
+        # 2. Darvas Box Logic
+        past = df.iloc[:-1] # Exclude today for box calculation
+        entry = get_val(past['High'].tail(20).max())
+        sl = get_val(past['Low'].tail(20).min())
         
-        # Volume Check
+        # 3. Volume Logic
         avg_vol = get_val(past['Volume'].tail(20).mean())
         cur_vol = get_val(df['Volume'].iloc[-1])
         rvol = cur_vol / avg_vol if avg_vol > 0 else 0
         
-        # Darvas Fundamentals (Basic Check)
+        # 4. Trend Logic (EMA 50)
+        ema50 = get_val(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
+        trend = "UP" if close > ema50 else "DOWN"
+        
+        # 5. Momentum Logic (RSI)
+        delta = df['Close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        rsi = get_val(100 - (100 / (1 + rs)).iloc[-1])
+        
+        # --- 6. AI CONFIDENCE SCORE (The Brain) ---
+        ai_score = 0
+        reasons = []
+        
+        # Rule A: Darvas Breakout (+40)
+        if close > entry: 
+            ai_score += 40
+            reasons.append("Box Breakout")
+        
+        # Rule B: Volume Surge (+20)
+        if rvol > 1.5: 
+            ai_score += 20
+            reasons.append("High Volume")
+            
+        # Rule C: Trend Alignment (+20)
+        if close > ema50: 
+            ai_score += 20
+            reasons.append("Uptrend (Above EMA50)")
+            
+        # Rule D: Momentum (+20)
+        if rsi > 50 and rsi < 75: 
+            ai_score += 20
+            reasons.append("Strong Momentum")
+            
+        # Risk Reward
+        risk = entry - sl
+        target = entry + (risk * 2)
+        
+        # Fundamentals
         try:
             info = ticker.info
-            mcap = info.get("marketCap", 0) / 10000000 
+            mcap = info.get("marketCap", 0) / 10000000
             pe = info.get("trailingPE", 0)
             sector = info.get("sector", "N/A")
-            high52 = info.get("fiftyTwoWeekHigh", 0)
-        except:
-            mcap, pe, sector, high52 = 0, 0, "N/A", 0
-
-        # Relative Strength (Simple: Is it near 52W High?)
-        is_near_high = close >= (high52 * 0.85) # Darvas liked stocks near ATH
+        except: mcap, pe, sector = 0, 0, "N/A"
 
         return {
             "symbol": symbol.replace(".NS", ""),
-            "close": close, "entry": box_high, "sl": box_low, 
-            "rvol": rvol, "mcap": mcap, "pe": pe, "sector": sector, 
-            "high52": high52, "near_high": is_near_high
+            "close": close, "entry": entry, "sl": sl, "target": target,
+            "rvol": rvol, "rsi": rsi, "trend": trend, "ema": ema50,
+            "ai_score": ai_score, "reasons": ", ".join(reasons),
+            "mcap": mcap, "pe": pe, "sector": sector
         }
     except: return None
 
-# --- 6. MAIN INTERFACE ---
-st.title("🦅 Darvas Elite Terminal")
+# --- 6. MAIN DASHBOARD ---
+st.title("🦅 Darvas AI Prime Terminal")
 
-# --- Step 1: Market Trend Check (Darvas Rule #1) ---
-trend, trend_color, nifty_price = get_market_trend()
-st.markdown(f"""
-<div class="trend-box" style="background-color: {trend_color};">
-    MARKET MOOD: {trend} (Nifty: {nifty_price:.2f})<br>
-    <span style="font-size:14px;">Darvas Principle: "I never buy a stock if the general market is falling."</span>
-</div>
-""", unsafe_allow_html=True)
-
-# --- Step 2: Universal Search ---
-st.markdown("### 🔍 Stock Analyzer (Darvas Method)")
-search_symbol = st.text_input("Enter Symbol (e.g. TRENT, BEL):", "")
+# --- SECTION 1: AI SUPER SEARCH ---
+st.markdown("### 🧠 AI Stock Analysis (Universal Search)")
+search_symbol = st.text_input("Enter Stock (e.g. ZOMATO, TATASTEEL):", "")
 
 if search_symbol:
-    with st.spinner(f"Applying Darvas Theory on {search_symbol}..."):
+    with st.spinner(f"AI Analyzing {search_symbol}..."):
         data = get_stock_data(search_symbol)
         
         if data:
-            # Darvas Logic
-            status = "HOLD / WAIT"
-            color = "#f39c12" # Orange
-            msg = "Stock is inside the box. No action."
-            
-            if data['close'] > data['entry']:
-                if data['rvol'] > 1.5 and data['near_high']:
-                    status = "DARVAS BUY 🚀"
-                    color = "#27ae60" # Green
-                    msg = "Box Breakout + High Volume + Near 52W High (Perfect Setup)"
-                elif data['rvol'] > 1.5:
-                    status = "BUY (Weak) ⚠️"
-                    color = "#82e0aa"
-                    msg = "Breakout with Volume, but not near All Time Highs."
-                else:
-                    status = "FAKE BREAKOUT?"
-                    color = "#d35400"
-                    msg = "Price broke out, but Volume is low. Be careful."
+            # Color Logic based on AI Score
+            score = data['ai_score']
+            if score >= 80: 
+                status = "💎 STRONG BUY"; color = "#00c853"; advice = "Safe to Enter"
+            elif score >= 60: 
+                status = "🟢 BUY / HOLD"; color = "#006400"; advice = "Good Setup"
             elif data['close'] < data['sl']:
-                status = "EXIT NOW 🛑"
-                color = "#c0392b"
-                msg = "Price fell below the Box. Darvas Rule: Sell immediately."
-            
-            # Display Card
+                status = "🔴 EXIT / AVOID"; color = "#d50000"; advice = "Stop Loss Hit"
+            else:
+                status = "🟡 WAIT / WATCH"; color = "#ffab00"; advice = "Weak Signal"
+
+            # AI Card
             st.markdown(f"""
-            <div style="background-color: white; border: 3px solid {color}; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                <h1 style="color: {color}; margin: 0;">{data['symbol']}</h1>
-                <h2 style="color: {color}; margin-top:5px;">{status}</h2>
-                <p style="color: #555; font-style: italic;">"{msg}"</p>
+            <div style="background-color: white; border: 3px solid {color}; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h1 style="color: #333; margin: 0;">{data['symbol']}</h1>
+                    <span class="ai-badge">AI SCORE: {score}/100</span>
+                </div>
+                <h2 style="color: {color}; margin-top: 10px;">{status}</h2>
+                <p style="color: #666; font-style: italic;">AI Logic: {data['reasons']}</p>
                 <hr>
-                <div style="display: flex; justify-content: space-around; font-size: 18px; color: #333;">
-                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
-                    <div><b>Box Top (Buy):</b><br>₹{data['entry']:.2f}</div>
-                    <div><b>Box Low (SL):</b><br>₹{data['sl']:.2f}</div>
-                    <div><b>Vol Surge:</b><br>{data['rvol']:.2f}x</div>
+                <div style="display: flex; justify-content: space-around; font-size: 18px; color: #333; font-weight: bold;">
+                    <div>CMP<br>₹{data['close']:.2f}</div>
+                    <div>Entry<br>₹{data['entry']:.2f}</div>
+                    <div>Target<br>₹{data['target']:.2f}</div>
+                    <div>Stop Loss<br>₹{data['sl']:.2f}</div>
+                </div>
+                <hr>
+                <div style="display: flex; justify-content: space-around; font-size: 16px; color: #555;">
+                    <div>Vol Surge: {data['rvol']:.2f}x</div>
+                    <div>RSI: {data['rsi']:.2f}</div>
+                    <div>Trend: {data['trend']}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown(f"👉 [**View Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
+            st.markdown(f"👉 [**View Live Chart**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
         else:
             st.error("Stock not found.")
 
 st.markdown("---")
 
-# --- Step 3: Nifty 500 Scanner ---
+# --- SECTION 2: 500 STOCK AI SCANNER ---
 STOCKS = [
     "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "SBIN.NS", "INFY.NS", "LICI.NS", "ITC.NS", "HINDUNILVR.NS",
     "LT.NS", "BAJFINANCE.NS", "HCLTECH.NS", "MARUTI.NS", "SUNPHARMA.NS", "ADANIENT.NS", "KOTAKBANK.NS", "TITAN.NS", "ONGC.NS", "TATAMOTORS.NS",
@@ -240,12 +269,19 @@ STOCKS = [
     "WABAG.NS", "VAIBHAVGBL.NS", "PCJEWELLER.NS", "THANGAMAYL.NS", "SENCO.NS", "GOLDIAM.NS", "RADICO.NS", "UBL.NS", "SULA.NS", "GMMPFAUDLR.NS",
     "TEJASNET.NS", "ITI.NS", "HFCL.NS", "STERLITE.NS", "INDUSTOWER.NS", "GSPL.NS", "MGL.NS", "IGL.NS", "ATGL.NS", "OIL.NS",
     "HINDPETRO.NS", "CHENNPETRO.NS", "MRPL.NS", "AEGISLOG.NS", "CONFIPET.NS", "DEEPINDS.NS", "HOEC.NS", "SELAN.NS", "JINDALDRILL.NS", "SWSOLAR.NS",
-    "BOROLTD.NS", "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "JSWENERGY.NS",
-    "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS",
-    "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "FACT.NS", "CHAMBLFERT.NS", "GNFC.NS", "DEEPAKFERT.NS", "COROMANDEL.NS"
+    "BOROLTD.NS", "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "ADANIPOWER.NS", "JSWENERGY.NS",
+    "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HBLPOWER.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS",
+    "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "AWL.NS", "PATANJALI.NS", "MANYAVAR.NS", "RHIM.NS", "POLICYBZR.NS", "STARHEALTH.NS",
+    "MEDANTA.NS", "BIKAJI.NS", "CAMPUS.NS", "METROBRAND.NS", "RUSTOMJEE.NS", "KEYSTONE.NS", "SIGNATURE.NS", "SOBHA.NS", "PRESTIGE.NS", "BRIGADE.NS",
+    "GODREJPROP.NS", "SUNTECK.NS", "MAHLIFE.NS", "PURVA.NS", "ASHOKA.NS", "PNCINFRA.NS", "KNRCON.NS", "GRINFRA.NS", "HGINFRA.NS", "DILIPBUILD.NS",
+    "NCC.NS", "HCC.NS", "ITDCEM.NS", "MANINFRA.NS", "JKTYRE.NS", "CEATLTD.NS", "APOLLOTYRE.NS", "BALKRISIND.NS", "TVSSRICHAK.NS", "GOCOLORS.NS",
+    "VMART.NS", "SHOPERSTOP.NS", "TCNSBRANDS.NS", "ARVIND.NS", "RAYMOND.NS", "WELSPUNIND.NS", "GARFIBRES.NS", "LUXIND.NS", "DOLLAR.NS", "RUPA.NS",
+    "KPRMILL.NS", "GOKEX.NS", "SWANENERGY.NS", "TRITURBINE.NS", "ELECON.NS", "AIAENGINE.NS", "TIMKEN.NS", "SCHAEFFLER.NS", "GRINDWELL.NS", "CARBORUNIV.NS",
+    "MMTC.NS", "STCINDIA.NS", "GMDC.NS", "MOIL.NS", "KIOCL.NS", "HINDCOPPER.NS", "HINDZINC.NS", "GPIL.NS", "JAYNECOIND.NS", "LLOYDSME.NS",
+    "IMFA.NS", "MASTEK.NS", "FSL.NS", "ECLERX.NS", "HGS.NS", "DATAMATICS.NS", "CMSINFO.NS", "SIS.NS", "QUESS.NS", "TEAMLEASE.NS",
+    "BLS.NS", "JUSTDIAL.NS", "AFFLE.NS", "INDIAMART.NS", "VAIBHAVGBL.NS", "CARTRADE.NS", "EASYTRIP.NS", "YATRA.NS", "RBA.NS", "WESTLIFE.NS",
+    "BARBEQUE.NS", "SPECIALITY.NS", "CHALET.NS", "LEMONHOTEL.NS", "EIHOTEL.NS", "INDHOTEL.NS", "TAJGVK.NS", "MAHSEAMLES.NS", "APOLLOPIPE.NS", "SURYA.NS"
 ]
-
-st.markdown("### 📊 Nifty 500 Scanner (Darvas Filter)")
 
 if start_scan:
     progress_bar = st.progress(0)
@@ -253,31 +289,33 @@ if start_scan:
     valid_data = []
     
     for i, stock in enumerate(STOCKS):
-        status_text.caption(f"Checking {stock}...")
+        status_text.caption(f"AI Scanning {i+1}/{len(STOCKS)}: {stock}")
         data = get_stock_data(stock) 
         progress_bar.progress((i + 1) / len(STOCKS))
         
-        if data and data['close'] > data['entry']:
-            risk = data['entry'] - data['sl']
-            pct_change = ((data['close'] - data['entry']) / data['entry']) * 100
-            
-            # Darvas Logic Filters
-            status = "HOLD"
-            if data['close'] < data['sl']: 
-                status = "EXIT NOW"
-            elif data['rvol'] > 1.5: 
-                status = "STRONG BUY"
-            
-            # Formatting (2 Decimals enforced)
-            valid_data.append({
-                "Stock": data['symbol'],
-                "Price": data['close'],
-                "Box Top": data['entry'],
-                "Stop Loss": data['sl'],
-                "Gain %": pct_change,
-                "Vol Surge": data['rvol'],
-                "Status": status
-            })
+        # --- SMART FILTERING ---
+        if data:
+            # हम सिर्फ वही दिखाएंगे जो Darvas Box तोड़ रहे हैं
+            if data['close'] > data['entry']:
+                
+                # Logic for Strong Buy (Multiple Confirmations)
+                status = "HOLD"
+                if data['close'] < data['sl']: 
+                    status = "EXIT NOW"
+                elif data['ai_score'] >= 60: # AI Approved
+                    status = "STRONG BUY"
+                
+                valid_data.append({
+                    "Stock": data['symbol'],
+                    "Price": data['close'],
+                    "Entry": data['entry'],
+                    "Target": data['target'],
+                    "Stop Loss": data['sl'],
+                    "Vol Surge": data['rvol'],
+                    "RSI": data['rsi'],
+                    "AI Score": data['ai_score'],
+                    "Status": status
+                })
 
     progress_bar.empty()
     status_text.empty()
@@ -285,21 +323,23 @@ if start_scan:
     if valid_data:
         df = pd.DataFrame(valid_data)
         
+        # 3D Cards
         col1, col2, col3 = st.columns(3)
-        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Matches</p></div>", unsafe_allow_html=True)
-        col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
-        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
+        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Stocks Scanned</p></div>", unsafe_allow_html=True)
+        col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>AI Approved Buys</p></div>", unsafe_allow_html=True)
+        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Stop Loss Hits</p></div>", unsafe_allow_html=True)
         
-        # Darvas Notification
+        # Long Notification (Restored)
         st.markdown("""
         <div class="advice-box">
-            <b>📜 DARVAS RULES (Strict):</b><br>
-            1. <b>Market Check:</b> Only buy if Nifty is UPTREND.<br>
-            2. <b>Volume:</b> 'Vol Surge' must be > 1.5x.<br>
-            3. <b>Box Theory:</b> Buy exactly when Price crosses 'Box Top'. Stop Loss is 'Box Low'.
+            <b>💡 TRADING RULES & NOTIFICATION:</b><br>
+            ✅ <b>STRONG BUY:</b> Only enter if <b>Volume is > 1.5x</b> and Price Gain is between <b>0.5% to 3%</b> from Entry Price.<br>
+            ⚠️ <b>AVOID/RISKY:</b> If stock has already moved <b>> 5%</b> from Entry (Chase mat karein).<br>
+            🛑 <b>EXIT:</b> If price closes below the Stop Loss level immediately.
         </div>
         """, unsafe_allow_html=True)
         
+        # Table with Formatting
         def color_row(val):
             if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
             if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
@@ -308,17 +348,19 @@ if start_scan:
         st.dataframe(
             df.style.map(color_row, subset=['Status']).format({
                 "Price": "{:.2f}", 
-                "Box Top": "{:.2f}", 
-                "Stop Loss": "{:.2f}", 
-                "Gain %": "{:.2f}%",
-                "Vol Surge": "{:.2f}x"
+                "Entry": "{:.2f}", 
+                "Target": "{:.2f}", 
+                "Stop Loss": "{:.2f}",
+                "Vol Surge": "{:.2f}x",
+                "RSI": "{:.2f}",
+                "AI Score": "{:.0f}/100"
             }),
             use_container_width=True, 
             height=600, 
             hide_index=True
         )
     else:
-        st.warning("No stocks matched the breakout criteria today.")
+        st.warning("No high-probability setups found today.")
 else:
-    st.info("Click 'SCAN NIFTY 500' to start.")
-            
+    st.info("Click 'RUN AI SCANNER' to begin.")
+        

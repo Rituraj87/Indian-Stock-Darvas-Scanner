@@ -4,95 +4,54 @@ import pandas as pd
 
 # --- 1. पेज कॉन्फ़िगरेशन ---
 st.set_page_config(
-    page_title="Darvas Pro 3D", 
+    page_title="Darvas AI Terminal", 
     layout="wide", 
     page_icon="🦅",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS (3D Cards, Big Fonts, Styling) ---
+# --- 2. ADVANCED CSS (3D Cards, Animations, AI Style) ---
 st.markdown("""
 <style>
-    /* सर्च बार स्टाइल */
+    /* सर्च बार */
     .stTextInput > div > div > input {
-        border-radius: 10px;
-        border: 2px solid #2980b9;
-        padding: 12px;
-        font-size: 18px; /* बड़ा फोंट */
+        border-radius: 12px; border: 2px solid #2980b9; padding: 12px; font-size: 18px;
     }
-
-    /* --- 3D कार्ड स्टाइल (Shadows + Lift Effect) --- */
+    
+    /* 3D Cards */
     .dashboard-card {
-        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* 3D Shadow */
-        padding: 25px;
-        border-radius: 15px;
-        text-align: center;
-        color: white;
-        margin-bottom: 25px;
-        transform: translateY(-5px); /* थोड़ा उठा हुआ */
-        transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        padding: 25px; border-radius: 15px; text-align: center; color: white;
+        margin-bottom: 25px; transform: translateY(-5px); transition: 0.3s;
     }
-    .dashboard-card:hover {
-        box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-        transform: translateY(-10px); /* होवर करने पर और ऊपर उठेगा */
-    }
-
-    /* कार्ड कलर्स */
+    .dashboard-card:hover { transform: translateY(-10px); }
     .card-blue { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
     .card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
     .card-red { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
+    .card-value { font-size: 42px !important; font-weight: 800; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .card-label { font-size: 18px !important; font-weight: 600; opacity: 0.95; }
 
-    /* कार्ड फोंट्स (बड़ा साइज़) */
-    .card-value {
-        font-size: 42px !important; /* बहुत बड़ा नंबर */
-        font-weight: 800;
-        margin: 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    .card-label {
-        font-size: 18px !important; /* बड़ा लेबल */
-        font-weight: 600;
-        opacity: 0.95;
-        margin-top: 5px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    /* एडवाइस नोटिफिकेशन बॉक्स (LONG VERSION) */
-    .advice-box {
-        background-color: #f0f8ff;
-        border-left: 6px solid #2196F3;
-        padding: 15px;
-        border-radius: 5px;
-        color: #0c5460;
-        margin-top: 10px;
-        margin-bottom: 20px;
-        font-size: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* AI Analysis Box */
+    .ai-box {
+        background-color: #f1f8e9; border-left: 5px solid #33691e;
+        padding: 15px; border-radius: 8px; margin-top: 15px; color: #333;
     }
     
-    /* फंडामेंटल बॉक्स */
-    .fund-box {
-        background-color: #ffffff; border-left: 5px solid #ff9800;
-        padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin-top: 15px; color: #333; font-size: 16px;
+    /* Support/Resistance Box */
+    .levels-box {
+        background-color: #e3f2fd; border-left: 5px solid #1565c0;
+        padding: 15px; border-radius: 8px; margin-top: 15px; color: #333;
     }
 
-    /* बटन स्टाइल */
-    div.stButton > button {
-        width: 100%;
-        background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%);
-        color: white;
-        font-weight: bold;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 16px;
-    }
+    /* Advice Notification */
+    .advice-box { background-color: #fff3e0; border-left: 6px solid #ff9800; padding: 15px; border-radius: 5px; color: #e65100; margin: 10px 0 20px 0; }
+    
+    /* Button */
+    div.stButton > button { width: 100%; background: linear-gradient(90deg, #FF512F 0%, #DD2476 100%); color: white; font-weight: bold; padding: 12px; border-radius: 8px; border: none; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. पासवर्ड सुरक्षा ---
+# --- 3. पासवर्ड ---
 MY_PASSWORD = "admin" 
 def check_password():
     if "password_correct" not in st.session_state: st.session_state.password_correct = False
@@ -108,16 +67,141 @@ if not check_password(): st.stop()
 # --- 4. साइडबार ---
 with st.sidebar:
     st.image("https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_1280.png", caption="Bullish Momentum", use_column_width=True)
-    st.title("NSE MARKET PRO")
+    st.title("DARVAS AI TERMINAL")
     st.markdown("---")
-    
-    # स्कैन बटन
-    start_scan = st.button("🚀 SCAN FULL MARKET (500)", type="primary")
-    st.caption("Scanning 500 stocks may take 3-5 mins.")
+    start_scan = st.button("🚀 SCAN FULL MARKET", type="primary")
+    st.caption("Scanning 500 stocks takes ~3-5 mins.")
 
-# --- 5. NIFTY 500 FULL LIST (COMPLETE .NS FORMAT) ---
+# --- 5. DATA FUNCTION (Advanced) ---
+@st.cache_data(ttl=900)
+def get_stock_data(symbol):
+    try:
+        symbol = symbol.upper().strip()
+        if not symbol.endswith(".NS"): symbol = f"{symbol}.NS"
+        
+        ticker = yf.Ticker(symbol)
+        df = ticker.history(period="3mo", interval="1d")
+        if len(df) < 30: return None
+        
+        # Basic Data
+        def get_val(s): return s.iloc[0] if isinstance(s, pd.Series) else s
+        close = get_val(df['Close'].iloc[-1])
+        high = get_val(df['High'].iloc[-1])
+        low = get_val(df['Low'].iloc[-1])
+        
+        past = df.iloc[:-1]
+        entry = get_val(past['High'].tail(20).max())
+        sl = get_val(past['Low'].tail(20).min())
+        avg_vol = get_val(past['Volume'].tail(20).mean())
+        cur_vol = get_val(df['Volume'].iloc[-1])
+        rvol = cur_vol / avg_vol if avg_vol > 0 else 0
+        
+        # --- NEW: Target Calculation ---
+        risk = entry - sl
+        target = entry + (risk * 2) # 1:2 Risk Reward
+        
+        # --- NEW: Support & Resistance (Pivot Points) ---
+        pivot = (high + low + close) / 3
+        r1 = (2 * pivot) - low
+        s1 = (2 * pivot) - high
+        
+        # Fundamentals
+        try:
+            info = ticker.info
+            mcap = info.get("marketCap", 0) / 10000000 
+            pe = info.get("trailingPE", 0)
+            sector = info.get("sector", "N/A")
+        except:
+            mcap, pe, sector = 0, 0, "N/A"
+
+        return {
+            "symbol": symbol.replace(".NS", ""),
+            "close": close, "entry": entry, "sl": sl, "target": target,
+            "rvol": rvol, "s1": s1, "r1": r1,
+            "mcap": mcap, "pe": pe, "sector": sector
+        }
+    except: return None
+
+# --- 6. MAIN APP ---
+st.title("🦅 Darvas AI Trading Terminal")
+
+# --- SECTION 1: UNIVERSAL SEARCH (Updated) ---
+st.markdown("### 🔍 AI Universal Search")
+st.caption("Type any stock (e.g. ZOMATO, TATASTEEL)")
+search_symbol = st.text_input("Stock Symbol:", "")
+
+if search_symbol:
+    with st.spinner(f"Running AI Analysis on {search_symbol}..."):
+        data = get_stock_data(search_symbol)
+        
+        if data:
+            # Logic
+            status = "HOLD"
+            color = "#856404"
+            sentiment = "NEUTRAL 😐"
+            
+            if data['close'] > data['entry']:
+                if data['rvol'] > 1.5: 
+                    status = "STRONG BUY 🚀"
+                    color = "#155724"
+                    sentiment = "BULLISH 🐂"
+                else: 
+                    status = "BUY / HOLD 🟢"
+                    color = "#006400"
+                    sentiment = "MILDLY BULLISH 🐃"
+            elif data['close'] < data['sl']:
+                status = "EXIT 🔴"
+                color = "#721c24"
+                sentiment = "BEARISH 🐻"
+            
+            # --- 3D Result Card (With TARGET) ---
+            st.markdown(f"""
+            <div style="background-color: white; border: 3px solid {color}; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                <h1 style="color: {color}; margin: 0;">{data['symbol']}</h1>
+                <h2 style="color: {color};">{status}</h2>
+                <hr>
+                <div style="display: flex; justify-content: space-around; font-size: 18px; color: #333;">
+                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
+                    <div><b>Entry:</b><br>₹{data['entry']:.2f}</div>
+                    <div><b>Target:</b><br>₹{data['target']:.2f}</div>
+                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            col_a, col_b = st.columns(2)
+            
+            with col_a:
+                # --- AI Sentiment Box ---
+                st.markdown(f"""
+                <div class="ai-box">
+                    <h4>🤖 AI Technical Sentiment</h4>
+                    <p style="font-size: 20px; font-weight: bold;">{sentiment}</p>
+                    <p><b>Vol Surge:</b> {data['rvol']:.1f}x (Normal is 1.0x)</p>
+                    <p><b>Sector:</b> {data['sector']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            with col_b:
+                # --- Auto Levels Box ---
+                st.markdown(f"""
+                <div class="levels-box">
+                    <h4>📐 Auto Support & Resistance</h4>
+                    <p><b>R1 (Resistance):</b> ₹{data['r1']:.2f}</p>
+                    <p><b>S1 (Support):</b> ₹{data['s1']:.2f}</p>
+                    <p style="font-size: 12px;">*Based on Pivot Points</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown(f"👉 [**View Chart on TradingView**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
+
+        else:
+            st.error("Stock not found. Check spelling.")
+
+st.markdown("---")
+
+# --- SECTION 2: 500 STOCK SCANNER ---
 STOCKS = [
-    # --- NIFTY 50 & NEXT 50 ---
     "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "SBIN.NS", "INFY.NS", "LICI.NS", "ITC.NS", "HINDUNILVR.NS",
     "LT.NS", "BAJFINANCE.NS", "HCLTECH.NS", "MARUTI.NS", "SUNPHARMA.NS", "ADANIENT.NS", "KOTAKBANK.NS", "TITAN.NS", "ONGC.NS", "TATAMOTORS.NS",
     "NTPC.NS", "AXISBANK.NS", "ADANIPORTS.NS", "POWERGRID.NS", "ULTRACEMCO.NS", "M&M.NS", "WIPRO.NS", "BAJAJFINSV.NS", "COALINDIA.NS", "JSWSTEEL.NS",
@@ -126,8 +210,6 @@ STOCKS = [
     "VBL.NS", "TRENT.NS", "ZOMATO.NS", "PIDILITIND.NS", "HAVELLS.NS", "NESTLEIND.NS", "BPCL.NS", "GAIL.NS", "SHRIRAMFIN.NS", "GODREJCP.NS",
     "IOC.NS", "TATACONSUM.NS", "CIPLA.NS", "DABUR.NS", "ABB.NS", "CHOLAFIN.NS", "AMBUJACEM.NS", "PNB.NS", "INDIGO.NS", "VEDL.NS",
     "BANKBARODA.NS", "TVSMOTOR.NS", "BOSCHLTD.NS", "MOTHERSON.NS", "HEROMOTOCO.NS", "RECLTD.NS", "MANKIND.NS", "APOLLOHOSP.NS", "TORNTPOWER.NS", "ICICIPRULI.NS",
-
-    # --- MIDCAP 150 ---
     "LODHA.NS", "CANBK.NS", "PFC.NS", "JINDALSTEL.NS", "POLYCAB.NS", "IRCTC.NS", "CUMMINSIND.NS", "COLPAL.NS", "MCDOWELL-N.NS", "PERSISTENT.NS",
     "MUTHOOTFIN.NS", "ASHOKLEY.NS", "MRF.NS", "PIIND.NS", "IDFCFIRSTB.NS", "ASTRAL.NS", "TATACOMM.NS", "PHOENIXLTD.NS", "MPHASIS.NS", "SUPREMEIND.NS",
     "TIINDIA.NS", "LALPATHLAB.NS", "AUBANK.NS", "CONCOR.NS", "ABCAPITAL.NS", "TATACHEM.NS", "FEDERALBNK.NS", "OBEROIRLTY.NS", "LTTS.NS", "ATUL.NS",
@@ -142,8 +224,6 @@ STOCKS = [
     "DATAPATTNS.NS", "MTARTECH.NS", "PARAS.NS", "ASTRAMICRO.NS", "CENTUM.NS", "HBLPOWER.NS", "TITAGARH.NS", "TEXRAIL.NS", "JWL.NS", "RKFORGE.NS",
     "ELECTCAST.NS", "GABRIEL.NS", "PRICOLLTD.NS", "SUBROS.NS", "LUMAXIND.NS", "MINDA CORP.NS", "UNOMINDA.NS", "ENDURANCE.NS", "CRAFTSMAN.NS", "JAMNAAUTO.NS",
     "GNA.NS", "ROLEXRINGS.NS", "SFL.NS", "TIMKEN.NS", "SCHAEFFLER.NS", "SKFINDIA.NS", "AIAENG.NS", "THERMAX.NS", "TRIVENI.NS", "PRAJIND.NS",
-
-    # --- SMALLCAP 250 & OTHERS ---
     "BALRAMCHIN.NS", "EIDPARRY.NS", "RENUKA.NS", "TRIVENITURB.NS", "KIRLOSENG.NS", "ELGIEQUIP.NS", "INGERRAND.NS", "KSB.NS", "POWERINDIA.NS", "HITACHI.NS",
     "VOLTAS.NS", "BLUESTARCO.NS", "KAJARIACER.NS", "CERA.NS", "SOMANYCERA.NS", "GREENPANEL.NS", "CENTURYPLY.NS", "STYLAMIND.NS", "PRINCEPIPE.NS", "FINPIPE.NS",
     "JINDALSAW.NS", "WELCORP.NS", "MAHARSEAM.NS", "RATNAMANI.NS", "APLLTD.NS", "ALEMBICLTD.NS", "ERIS.NS", "AJANTPHARM.NS", "JBITHEM.NS", "NATCOPHARM.NS",
@@ -162,188 +242,5 @@ STOCKS = [
     "BOROLTD.NS", "GREAVESCOT.NS", "KIRLOSIND.NS", "PTC.NS", "SJVN.NS", "NHPC.NS", "JPPOWER.NS", "RTNPOWER.NS", "RPOWER.NS", "JSWENERGY.NS",
     "CESC.NS", "EXIDEIND.NS", "AMARAJABAT.NS", "HUDCO.NS", "NBCC.NS", "RITES.NS", "IRCON.NS", "RAILTEL.NS", "BEML.NS", "GPPL.NS",
     "SCI.NS", "DREDGECORP.NS", "RCF.NS", "NFL.NS", "AWL.NS", "PATANJALI.NS", "MANYAVAR.NS", "RHIM.NS", "POLICYBZR.NS", "STARHEALTH.NS",
-    "MEDANTA.NS", "BIKAJI.NS", "CAMPUS.NS", "METROBRAND.NS", "RUSTOMJEE.NS", "KEYSTONE.NS", "SIGNATURE.NS", "SOBHA.NS", "PRESTIGE.NS", "BRIGADE.NS",
-    "GODREJPROP.NS", "SUNTECK.NS", "MAHLIFE.NS", "PURVA.NS", "ASHOKA.NS", "PNCINFRA.NS", "KNRCON.NS", "GRINFRA.NS", "HGINFRA.NS", "DILIPBUILD.NS",
-    "NCC.NS", "HCC.NS", "ITDCEM.NS", "MANINFRA.NS", "JKTYRE.NS", "CEATLTD.NS", "APOLLOTYRE.NS", "BALKRISIND.NS", "TVSSRICHAK.NS", "GOCOLORS.NS",
-    "VMART.NS", "SHOPERSTOP.NS", "TCNSBRANDS.NS", "ARVIND.NS", "RAYMOND.NS", "WELSPUNIND.NS", "GARFIBRES.NS", "LUXIND.NS", "DOLLAR.NS", "RUPA.NS",
-    "KPRMILL.NS", "GOKEX.NS", "SWANENERGY.NS", "TRITURBINE.NS", "ELECON.NS", "AIAENGINE.NS", "TIMKEN.NS", "SCHAEFFLER.NS", "GRINDWELL.NS", "CARBORUNIV.NS",
-    "MMTC.NS", "STCINDIA.NS", "GMDC.NS", "MOIL.NS", "KIOCL.NS", "HINDCOPPER.NS", "HINDZINC.NS", "GPIL.NS", "JAYNECOIND.NS", "LLOYDSME.NS",
-    "IMFA.NS", "MASTEK.NS", "FSL.NS", "ECLERX.NS", "HGS.NS", "DATAMATICS.NS", "CMSINFO.NS", "SIS.NS", "QUESS.NS", "TEAMLEASE.NS",
-    "BLS.NS", "JUSTDIAL.NS", "AFFLE.NS", "INDIAMART.NS", "VAIBHAVGBL.NS", "CARTRADE.NS", "EASYTRIP.NS", "YATRA.NS", "RBA.NS", "WESTLIFE.NS",
-    "BARBEQUE.NS", "SPECIALITY.NS", "CHALET.NS", "LEMONHOTEL.NS", "EIHOTEL.NS", "INDHOTEL.NS", "TAJGVK.NS", "MAHSEAMLES.NS", "APOLLOPIPE.NS", "SURYA.NS"
-]
-
-@st.cache_data(ttl=900)
-def get_stock_data(symbol):
-    try:
-        # Fix: Remove spaces and ensure uppercase
-        symbol = symbol.upper().strip()
-        if not symbol.endswith(".NS"): symbol = f"{symbol}.NS"
+    "MEDANTA.NS", "BIKAJI.
         
-        ticker = yf.Ticker(symbol)
-        
-        # Fast History Fetch
-        df = ticker.history(period="3mo", interval="1d")
-        if len(df) < 30: return None
-        
-        # Technicals
-        def get_val(s): return s.iloc[0] if isinstance(s, pd.Series) else s
-        close = get_val(df['Close'].iloc[-1])
-        past = df.iloc[:-1]
-        entry = get_val(past['High'].tail(20).max())
-        sl = get_val(past['Low'].tail(20).min())
-        avg_vol = get_val(past['Volume'].tail(20).mean())
-        cur_vol = get_val(df['Volume'].iloc[-1])
-        rvol = cur_vol / avg_vol if avg_vol > 0 else 0
-        
-        # Fundamentals (Safe Fetch)
-        try:
-            info = ticker.info
-            mcap = info.get("marketCap", 0) / 10000000 # Crores
-            pe = info.get("trailingPE", 0)
-            sector = info.get("sector", "N/A")
-            high52 = info.get("fiftyTwoWeekHigh", 0)
-        except:
-            mcap, pe, sector, high52 = 0, 0, "N/A", 0
-
-        return {
-            "symbol": symbol.replace(".NS", ""),
-            "close": close, "entry": entry, "sl": sl, "rvol": rvol,
-            "mcap": mcap, "pe": pe, "sector": sector, "high52": high52
-        }
-    except: return None
-
-# --- 6. MAIN APP ---
-st.title("🦅 Darvas Pro Market Scanner")
-
-# --- SECTION 1: SEARCH BAR (Fixed & Fundamental) ---
-st.markdown("### 🔍 Universal Search (With Fundamentals)")
-st.caption("Type any stock name (e.g. ZOMATO, TATASTEEL, SUZLON)")
-search_symbol = st.text_input("Enter Stock Symbol:", "")
-
-if search_symbol:
-    with st.spinner(f"Fetching details for {search_symbol}..."):
-        data = get_stock_data(search_symbol)
-        
-        if data:
-            # Logic
-            status = "HOLD"
-            color = "#856404"
-            if data['close'] > data['entry']:
-                if data['rvol'] > 1.5: status = "STRONG BUY 🚀"; color = "#155724"
-                else: status = "BUY / HOLD 🟢"; color = "#006400"
-            elif data['close'] < data['sl']:
-                status = "EXIT 🔴"; color = "#721c24"
-            
-            # 3D Result Card
-            st.markdown(f"""
-            <div style="background-color: white; border: 3px solid {color}; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                <h1 style="color: {color}; margin: 0;">{data['symbol']}</h1>
-                <h2 style="color: {color};">{status}</h2>
-                <hr>
-                <div style="display: flex; justify-content: space-around; font-size: 18px; color: #333;">
-                    <div><b>Price:</b><br>₹{data['close']:.2f}</div>
-                    <div><b>Entry:</b><br>₹{data['entry']:.2f}</div>
-                    <div><b>Stop Loss:</b><br>₹{data['sl']:.2f}</div>
-                    <div><b>Vol Surge:</b><br>{data['rvol']:.1f}x</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Fundamental Analysis Box
-            st.markdown(f"""
-            <div class="fund-box">
-                <h4>📊 Fundamental Snapshot</h4>
-                <p>
-                <b>🏢 Sector:</b> {data['sector']} &nbsp;|&nbsp; 
-                <b>💰 Market Cap:</b> ₹{int(data['mcap']):,} Cr &nbsp;|&nbsp; 
-                <b>📉 PE Ratio:</b> {data['pe']:.2f}<br>
-                <b>🚀 52-Week High:</b> ₹{data['high52']:.2f}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown(f"👉 [**View Chart on TradingView**](https://in.tradingview.com/chart/?symbol=NSE:{data['symbol']})")
-
-        else:
-            st.error("Stock not found. Try checking the spelling (e.g. use TATAMOTORS instead of TATA MOTORS).")
-
-st.markdown("---")
-
-# --- SECTION 2: 500 STOCK SCANNER ---
-st.markdown("### 📊 Full Market Scanner (Nifty 500)")
-
-if start_scan:
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-    valid_data = []
-    
-    for i, stock in enumerate(STOCKS):
-        status_text.caption(f"Analyzing {i+1}/{len(STOCKS)}: {stock}")
-        data = get_stock_data(stock) 
-        progress_bar.progress((i + 1) / len(STOCKS))
-        
-        if data and data['close'] > data['entry']:
-            risk = data['entry'] - data['sl']
-            target = data['entry'] + (risk * 2)
-            pct_change = ((data['close'] - data['entry']) / data['entry']) * 100
-            
-            status = "HOLD"
-            if data['close'] < data['sl']: status = "EXIT NOW"
-            elif data['rvol'] > 1.5: status = "STRONG BUY"
-            
-            valid_data.append({
-                "Stock": data['symbol'],
-                "Price": data['close'],
-                "Entry": data['entry'],
-                "Target": data['target'] if 'target' in data else target, 
-                "Stop Loss": data['sl'],
-                "Gain %": pct_change,
-                "Vol Surge": data['rvol'], # --- कॉलम का नाम बदल दिया (User Request) ---
-                "Status": status
-            })
-
-    progress_bar.empty()
-    status_text.empty()
-    
-    if valid_data:
-        df = pd.DataFrame(valid_data)
-        
-        # 3D Cards (Big Font)
-        col1, col2, col3 = st.columns(3)
-        col1.markdown(f"<div class='dashboard-card card-blue'><p class='card-value'>{len(df)}</p><p class='card-label'>Stocks Scanned</p></div>", unsafe_allow_html=True)
-        col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>Strong Buys</p></div>", unsafe_allow_html=True)
-        col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Exits</p></div>", unsafe_allow_html=True)
-        
-        # --- Notification Restored (Long Version) ---
-        st.markdown("""
-        <div class="advice-box">
-            <b>💡 TRADING RULES & NOTIFICATION:</b><br>
-            ✅ <b>STRONG BUY:</b> Only enter if <b>Volume is > 1.5x</b> and Price Gain is between <b>0.5% to 3%</b> from Entry Price.<br>
-            ⚠️ <b>AVOID/RISKY:</b> If stock has already moved <b>> 5%</b> from Entry (Chase mat karein).<br>
-            🛑 <b>EXIT:</b> If price closes below the Stop Loss level immediately.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Table
-        def color_row(val):
-            if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
-            if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
-            return ''
-            
-        st.dataframe(
-            df.style.map(color_row, subset=['Status']).format({
-                "Price": "{:.2f}", 
-                "Entry": "{:.2f}", 
-                "Target": "{:.2f}", 
-                "Gain %": "{:.2f}%",
-                "Vol Surge": "{:.1f}x" # --- कॉलम फॉर्मेटिंग ---
-            }),
-            use_container_width=True, 
-            height=600, 
-            hide_index=True
-        )
-    else:
-        st.warning("No stocks matched the breakout criteria today.")
-else:
-    st.info("Click 'SCAN FULL MARKET' in sidebar to start.")

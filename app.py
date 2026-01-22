@@ -343,10 +343,21 @@ if start_scan:
     if valid_data:
         df = pd.DataFrame(valid_data)
         
+        # Display Metrics
         c1, c2, c3 = st.columns(3)
         c1.markdown(f"<div class='glass-card'><h3>Found</h3><div class='big-value'>{len(df)}</div></div>", unsafe_allow_html=True)
         c2.markdown(f"<div class='glass-card'><h3>Buy</h3><div class='big-value'>{len(df[df['Status']=='STRONG BUY'])}</div></div>", unsafe_allow_html=True)
         c3.markdown(f"<div class='glass-card'><h3>Exit</h3><div class='big-value'>{len(df[df['Status']=='EXIT NOW'])}</div></div>", unsafe_allow_html=True)
+        
+        # Advice Box (Long)
+        st.markdown("""
+        <div style="background-color: #f0f8ff; border-left: 6px solid #2196F3; padding: 15px; border-radius: 5px; color: #0c5460; margin: 20px 0;">
+            <b>💡 TRADING RULES & NOTIFICATION:</b><br>
+            ✅ <b>STRONG BUY:</b> Only enter if <b>Volume is > 1.5x</b> and Price Gain is between <b>0.5% to 3%</b> from Entry Price.<br>
+            ⚠️ <b>AVOID/RISKY:</b> If stock has already moved <b>> 5%</b> from Entry (Chase mat karein).<br>
+            🛑 <b>EXIT:</b> If price closes below the Stop Loss level immediately.
+        </div>
+        """, unsafe_allow_html=True)
         
         def color_row(val):
             if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'

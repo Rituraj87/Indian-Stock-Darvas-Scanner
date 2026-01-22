@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS (Same as requested) ---
+# --- 2. ADVANCED CSS ---
 st.markdown("""
 <style>
     /* सर्च बार */
@@ -18,7 +18,7 @@ st.markdown("""
         border-radius: 12px; border: 2px solid #2980b9; padding: 12px; font-size: 18px;
     }
     
-    /* 3D Glassmorphism Cards (Main Result) */
+    /* 3D Glassmorphism Cards */
     .dashboard-card {
         background: rgba(255, 255, 255, 0.95);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -42,33 +42,22 @@ st.markdown("""
         box-shadow: 0 0 10px #00ff00;
     }
 
-    /* --- THE MISSING CARDS (Restored) --- */
-    /* Green AI Sentiment Card */
+    /* --- SPECIAL CARDS --- */
     .ai-box {
-        background-color: #f1f8e9; 
-        border-left: 6px solid #33691e;
-        padding: 20px; 
-        border-radius: 10px; 
-        margin-top: 15px; 
-        color: #333;
+        background-color: #f1f8e9; border-left: 6px solid #33691e;
+        padding: 20px; border-radius: 10px; margin-top: 15px; color: #333;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    
-    /* Blue Auto Levels Card */
     .levels-box {
-        background-color: #e3f2fd; 
-        border-left: 6px solid #1565c0;
-        padding: 20px; 
-        border-radius: 10px; 
-        margin-top: 15px; 
-        color: #333;
+        background-color: #e3f2fd; border-left: 6px solid #1565c0;
+        padding: 20px; border-radius: 10px; margin-top: 15px; color: #333;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    /* Market Mood Bar */
+    /* Market Mood */
     .mood-box { padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: white; margin-bottom: 10px; }
     
-    /* Advice Notification */
+    /* Advice */
     .advice-box { background-color: #f0f8ff; border-left: 6px solid #2196F3; padding: 15px; border-radius: 5px; color: #0c5460; margin: 10px 0 20px 0; }
 
     /* Button */
@@ -89,7 +78,7 @@ def check_password():
     return True
 if not check_password(): st.stop()
 
-# --- 4. साइडबार & NIFTY TREND ---
+# --- 4. साइडबार ---
 def get_nifty_trend():
     try:
         df = yf.download("^NSEI", period="6mo", interval="1d", progress=False)
@@ -97,7 +86,6 @@ def get_nifty_trend():
         ema50 = df['Close'].ewm(span=50, adjust=False).mean().iloc[-1]
         if isinstance(close, pd.Series): close = close.iloc[0]
         if isinstance(ema50, pd.Series): ema50 = ema50.iloc[0]
-        
         if close > ema50: return "BULLISH 🐂", "#2ecc71" 
         else: return "BEARISH 🐻", "#e74c3c" 
     except: return "NEUTRAL 😐", "#95a5a6"
@@ -111,7 +99,7 @@ with st.sidebar:
     start_scan = st.button("🚀 RUN AI SCANNER", type="primary")
     st.caption("Advanced Calculation: ~4-6 mins")
 
-# --- 5. ADVANCED DATA ENGINE ---
+# --- 5. DATA ENGINE ---
 @st.cache_data(ttl=900)
 def get_stock_data(symbol):
     try:
@@ -139,7 +127,7 @@ def get_stock_data(symbol):
         cur_vol = get_val(df['Volume'].iloc[-1])
         rvol = cur_vol / avg_vol if avg_vol > 0 else 0
         
-        # EMA 50
+        # EMA
         ema50 = get_val(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
         trend = "UP" if close > ema50 else "DOWN"
         
@@ -161,7 +149,7 @@ def get_stock_data(symbol):
         risk = entry - sl
         target = entry + (risk * 2)
         
-        # Pivot Points (Auto Support/Resistance)
+        # Pivot Points
         pivot = (high + low + close) / 3
         r1 = (2 * pivot) - low
         s1 = (2 * pivot) - high
@@ -187,7 +175,7 @@ def get_stock_data(symbol):
 # --- 6. MAIN DASHBOARD ---
 st.title("🦅 Darvas AI Prime Terminal")
 
-# --- SECTION 1: AI SUPER SEARCH ---
+# --- SECTION 1: SEARCH ---
 st.markdown("### 🧠 AI Stock Analysis (Universal Search)")
 search_symbol = st.text_input("Enter Stock (e.g. ZOMATO, TATASTEEL):", "")
 
@@ -196,18 +184,12 @@ if search_symbol:
         data = get_stock_data(search_symbol)
         
         if data:
-            # Status Logic
             score = data['ai_score']
-            if score >= 80: 
-                status = "💎 STRONG BUY"; color = "#00c853"; sentiment = "BULLISH 🐂"
-            elif score >= 60: 
-                status = "🟢 BUY / HOLD"; color = "#006400"; sentiment = "MILDLY BULLISH 🐃"
-            elif data['close'] < data['sl']:
-                status = "🔴 EXIT / AVOID"; color = "#d50000"; sentiment = "BEARISH 🐻"
-            else:
-                status = "🟡 WAIT / WATCH"; color = "#ffab00"; sentiment = "NEUTRAL 😐"
+            if score >= 80: status = "💎 STRONG BUY"; color = "#00c853"; sentiment = "BULLISH 🐂"
+            elif score >= 60: status = "🟢 BUY / HOLD"; color = "#006400"; sentiment = "MILDLY BULLISH 🐃"
+            elif data['close'] < data['sl']: status = "🔴 EXIT / AVOID"; color = "#d50000"; sentiment = "BEARISH 🐻"
+            else: status = "🟡 WAIT / WATCH"; color = "#ffab00"; sentiment = "NEUTRAL 😐"
 
-            # 1. MAIN 3D CARD
             st.markdown(f"""
             <div style="background-color: white; border: 3px solid {color}; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -225,11 +207,9 @@ if search_symbol:
             </div>
             """, unsafe_allow_html=True)
             
-            # --- 2. THE REQUESTED EXTRA CARDS (ADDED BACK) ---
             col_a, col_b = st.columns(2)
             
             with col_a:
-                # Green AI Card
                 st.markdown(f"""
                 <div class="ai-box">
                     <h3 style="margin-top:0;">🤖 AI Technical Sentiment</h3>
@@ -241,7 +221,6 @@ if search_symbol:
                 """, unsafe_allow_html=True)
                 
             with col_b:
-                # Blue Levels Card
                 st.markdown(f"""
                 <div class="levels-box">
                     <h3 style="margin-top:0;">📐 Auto Support & Resistance</h3>
@@ -257,7 +236,7 @@ if search_symbol:
 
 st.markdown("---")
 
-# --- SECTION 2: 500 STOCK SCANNER ---
+# --- SECTION 2: SCANNER ---
 STOCKS = [
     "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "SBIN.NS", "INFY.NS", "LICI.NS", "ITC.NS", "HINDUNILVR.NS",
     "LT.NS", "BAJFINANCE.NS", "HCLTECH.NS", "MARUTI.NS", "SUNPHARMA.NS", "ADANIENT.NS", "KOTAKBANK.NS", "TITAN.NS", "ONGC.NS", "TATAMOTORS.NS",
@@ -330,6 +309,9 @@ if start_scan:
                 elif data['ai_score'] >= 60: # AI Approved
                     status = "STRONG BUY"
                 
+                # --- Gain% CALCULATION ADDED ---
+                pct_change = ((data['close'] - data['entry']) / data['entry']) * 100
+                
                 valid_data.append({
                     "Stock": data['symbol'],
                     "Price": data['close'],
@@ -339,7 +321,8 @@ if start_scan:
                     "Vol Surge": data['rvol'],
                     "RSI": data['rsi'],
                     "AI Score": data['ai_score'],
-                    "Status": status
+                    "Status": status,
+                    "Gain %": pct_change # Added here
                 })
 
     progress_bar.empty()
@@ -354,7 +337,6 @@ if start_scan:
         col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>AI Approved Buys</p></div>", unsafe_allow_html=True)
         col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Stop Loss Hits</p></div>", unsafe_allow_html=True)
         
-        # Long Notification (Restored)
         st.markdown("""
         <div class="advice-box">
             <b>💡 TRADING RULES & NOTIFICATION:</b><br>
@@ -364,12 +346,12 @@ if start_scan:
         </div>
         """, unsafe_allow_html=True)
         
-        # Table with Formatting
         def color_row(val):
             if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
             if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
             return ''
             
+        # --- TABLE WITH Gain% ---
         st.dataframe(
             df.style.map(color_row, subset=['Status']).format({
                 "Price": "{:.2f}", 
@@ -378,7 +360,8 @@ if start_scan:
                 "Stop Loss": "{:.2f}",
                 "Vol Surge": "{:.2f}x",
                 "RSI": "{:.2f}",
-                "AI Score": "{:.0f}/100"
+                "AI Score": "{:.0f}/100",
+                "Gain %": "{:.2f}%" # Added here
             }),
             use_container_width=True, 
             height=600, 

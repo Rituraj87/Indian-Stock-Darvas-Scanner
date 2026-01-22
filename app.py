@@ -39,7 +39,7 @@ st.markdown("""
         text-align: center;
     }
 
-    /* SPECIAL AI CARDS */
+    /* SPECIAL AI CARDS (Restored) */
     .ai-card {
         background: linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(39, 174, 96, 0.1) 100%);
         border: 1px solid #2ecc71;
@@ -82,7 +82,7 @@ def check_password():
     return True
 if not check_password(): st.stop()
 
-# --- 4. DATA ENGINE ---
+# --- 4. DATA ENGINE (AI + FUNDAMENTALS) ---
 @st.cache_data(ttl=900)
 def get_stock_data(symbol):
     try:
@@ -91,7 +91,7 @@ def get_stock_data(symbol):
         
         ticker = yf.Ticker(symbol)
         
-        # 1. Historical Data
+        # 1. Historical Data (6 Months)
         df = ticker.history(period="6mo", interval="1d")
         if len(df) < 50: return None
         
@@ -113,13 +113,14 @@ def get_stock_data(symbol):
         ema50 = get_val(df['Close'].ewm(span=50, adjust=False).mean().iloc[-1])
         trend_status = "UP 📈" if close > ema50 else "DOWN 📉"
         
-        # 3. AI Score & RSI
+        # 3. AI Score
         ai_score = 0
         reasons = []
         if close > entry: ai_score += 35; reasons.append("Box Breakout")
         if rvol > 1.5: ai_score += 25; reasons.append("Volume Blast")
         if close > ema50: ai_score += 20; reasons.append("Uptrend")
         
+        # RSI
         delta = df['Close'].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
@@ -127,7 +128,7 @@ def get_stock_data(symbol):
         rsi = get_val(100 - (100 / (1 + rs)).iloc[-1])
         if 50 < rsi < 75: ai_score += 20; reasons.append("Momentum")
         
-        # 4. Levels
+        # 4. Levels (Support/Resistance)
         risk = entry - sl
         target = entry + (risk * 2)
         pivot = (high + low + close) / 3
@@ -137,7 +138,7 @@ def get_stock_data(symbol):
         # 5. Fundamentals
         try:
             info = ticker.info
-            mcap = info.get("marketCap", 0) / 10000000 
+            mcap = info.get("marketCap", 0) / 10000000 # Crores
             pe = info.get("trailingPE", 0)
             sector = info.get("sector", "N/A")
             high52 = info.get("fiftyTwoWeekHigh", 0)
@@ -201,7 +202,7 @@ if search_symbol:
             </div>
             """, unsafe_allow_html=True)
 
-            # --- TOP ROW ---
+            # --- TOP ROW: PRICE & FUNDAMENTALS ---
             c1, c2, c3 = st.columns(3)
             with c1:
                 st.markdown(f"""<div class="glass-card"><h4>💰 Price</h4><div class="big-value">₹{data['close']:.2f}</div><p class="label-text">Current Price</p></div>""", unsafe_allow_html=True)
@@ -210,7 +211,7 @@ if search_symbol:
             with c3:
                 st.markdown(f"""<div class="glass-card"><h4>📉 PE Ratio</h4><div class="big-value">{data['pe']:.1f}</div><p class="label-text">Price to Earnings</p></div>""", unsafe_allow_html=True)
 
-            # --- AI SENTIMENT & LEVELS CARDS ---
+            # --- SECOND ROW: RESTORED SPECIAL CARDS (SENTIMENT & LEVELS) ---
             c_ai, c_lvl = st.columns(2)
             
             with c_ai:
@@ -251,7 +252,7 @@ if search_symbol:
             """, unsafe_allow_html=True)
 
         else:
-            st.error("Stock not found. Check spelling.")
+            st.error("Stock not found. Check spelling (e.g., use TATAMOTORS).")
 
 st.markdown("---")
 
@@ -330,17 +331,16 @@ if start_scan:
                 elif data['ai_score'] >= 60: # AI Approved
                     status = "STRONG BUY"
                 
-                # --- Gain % Calclulation (Fixed) ---
-                gain_pct = ((data['close'] - data['entry']) / data['entry']) * 100
-
-                # --- COLUMNS ORDERED EXACTLY AS REQUESTED ---
+                # Gain % Calculation
+                pct_change = ((data['close'] - data['entry']) / data['entry']) * 100
+                
                 valid_data.append({
                     "Stock": data['symbol'],
                     "Price": data['close'],
                     "Entry": data['entry'],
                     "Target": data['target'],
                     "Stop Loss": data['sl'],
-                    "Gain %": gain_pct,  # Added Back
+                    "Gain %": pct_change, # --- RESTORED HERE ---
                     "Vol Surge": data['rvol'],
                     "RSI": data['rsi'],
                     "AI Score": data['ai_score'],
@@ -359,7 +359,7 @@ if start_scan:
         col2.markdown(f"<div class='dashboard-card card-green'><p class='card-value'>{len(df[df['Status']=='STRONG BUY'])}</p><p class='card-label'>AI Approved Buys</p></div>", unsafe_allow_html=True)
         col3.markdown(f"<div class='dashboard-card card-red'><p class='card-value'>{len(df[df['Status']=='EXIT NOW'])}</p><p class='card-label'>Stop Loss Hits</p></div>", unsafe_allow_html=True)
         
-        # Long Notification (Restored)
+        # Long Notification
         st.markdown("""
         <div class="advice-box">
             <b>💡 TRADING RULES & NOTIFICATION:</b><br>
@@ -369,7 +369,7 @@ if start_scan:
         </div>
         """, unsafe_allow_html=True)
         
-        # Table with Formatting (Columns Ordered)
+        # Table with Formatting & Column Ordering
         def color_row(val):
             if 'STRONG' in val: return 'background-color: #d4edda; color: green; font-weight: bold;'
             if 'EXIT' in val: return 'background-color: #f8d7da; color: red; font-weight: bold;'
@@ -381,12 +381,15 @@ if start_scan:
                 "Entry": "{:.2f}", 
                 "Target": "{:.2f}", 
                 "Stop Loss": "{:.2f}",
-                "Gain %": "{:.2f}%",
+                "Gain %": "{:.2f}%", # --- FORMATTING ADDED ---
                 "Vol Surge": "{:.2f}x",
                 "RSI": "{:.2f}",
                 "AI Score": "{:.0f}/100"
             }),
-            column_order=["Stock", "Price", "Entry", "Target", "Stop Loss", "Gain %", "Vol Surge", "RSI", "AI Score", "Status"],
+            column_order=["Stock", "Price", "Entry", "Target", "Stop Loss", "Gain %", "Vol Surge", "RSI", "AI Score", "Status"], # --- ORDER ENFORCED ---
+            column_config={
+                "Stock": st.column_config.TextColumn("Stock", pinned=True) # --- PINNED STOCK COLUMN ---
+            },
             use_container_width=True, 
             height=600, 
             hide_index=True
